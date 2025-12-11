@@ -4,10 +4,10 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import { BrandedFallback } from './components/LoadingFallback';
 import ScrollToTop from './helper/ScrollToTop';
 import { fetchExchangeRates } from './slices/currencySlice';
-import { useAppDispatch } from './hooks/useRedux';
 import { WhatsAppButton } from './components/WhatsAppButton';
 import FlightResultsPage from './pages/Flightresultspage';
 import FlightDetail from './pages/FlightDetail';
+import { useAppDispatch } from './store/hooks';
 
 const FlightsBookingHero = lazy(() => import('./components/FlightsBookingHero'));
 const Footer = lazy(() => import('./components/Footer'));
@@ -42,7 +42,7 @@ function App() {
             <Route path='/' element={<FlightsBookingHero />} />
             <Route path='/contact' element={<ContactUsPage />} />
             <Route path='/about' element={<AboutPage />} />
-            <Route path="/results" element={<FlightResultsPage />} />
+            <Route path="/flights" element={<FlightResultsPage />} />
             <Route path="/flight/:id" element={<FlightDetail />} />
             <Route path='*' element={<FallbackPage />} />
           </Routes>

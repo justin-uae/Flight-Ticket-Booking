@@ -11,46 +11,51 @@ export default function Footer() {
   ];
 
   return (
-    <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 py-8 relative overflow-hidden">
-      {/* Decorative elements */}
-      <div className="absolute top-0 left-0 w-64 h-64 bg-red-500/5 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-64 h-64 bg-red-600/5 rounded-full blur-3xl"></div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <footer className="bg-gray-900 text-gray-300 py-8 border-t-4 border-blue-600">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row justify-between items-center gap-6">
           {/* Company Info with Logo */}
-          <div className="flex flex-col items-center md:items-start gap-3 w-full md:w-auto">
+          <div className="flex flex-col items-center md:items-start gap-4 w-full md:w-auto">
             {/* Logo */}
             <Link to="/" className="flex items-center gap-3 group">
-              {/* <LazyLoadImage className="w-12 h-10 sm:w-14 sm:h-14 md:w-16 md:h-14 transform group-hover:scale-110 transition-transform" src={Logo} /> */}
               <div className="flex flex-col">
-                <span className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-primary group-hover:text-accent transition-colors duration-300">
-                  UAE <span className="text-red-600">Flight Bookings</span>
+                <span className="text-xl sm:text-2xl md:text-3xl font-black text-white group-hover:text-blue-600 transition-colors duration-300">
+                  Compare <span className="text-blue-600">Flights</span>
                 </span>
               </div>
             </Link>
 
-            {/* Contact Info - Responsive Stack */}
-            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-6 mt-2">
+            {/* Contact Info */}
+            <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 md:gap-5">
               <div className="flex items-center gap-2 group">
-                <div className="bg-gradient-to-br from-red-600 to-red-700 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-                  <MapPin className="w-4 h-4 text-white flex-shrink-0" />
+                <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-600 transition-colors">
+                  <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 </div>
-                <span className="text-sm text-center sm:text-left font-medium">Hor Al Anz Building 101, Dubai, UAE</span>
+                <span className="text-sm sm:text-base text-center sm:text-left font-semibold text-gray-300">
+                  Hor Al Anz Building 101, Dubai, UAE
+                </span>
               </div>
+
               <div className="flex items-center gap-2 group">
-                <div className="bg-gradient-to-br from-red-600 to-red-700 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-                  <Phone className="w-4 h-4 text-white flex-shrink-0" />
+                <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-600 transition-colors">
+                  <Phone className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 </div>
-                <a href={`tel:+${phoneNumber}`} className="text-sm hover:text-red-400 transition-colors font-medium">
+
+                <a href={`tel:+${phoneNumber}`}
+                  className="text-sm sm:text-base hover:text-blue-600 transition-colors font-semibold"
+                >
                   +{phoneNumber}
                 </a>
               </div>
+
               <div className="flex items-center gap-2 group">
-                <div className="bg-gradient-to-br from-red-600 to-red-700 p-1.5 rounded-lg group-hover:scale-110 transition-transform">
-                  <Mail className="w-4 h-4 text-white flex-shrink-0" />
+                <div className="bg-blue-600 p-2 rounded-lg group-hover:bg-blue-600 transition-colors">
+                  <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" />
                 </div>
-                <a href={`mailto:${bookingEmail}`} className="text-sm hover:text-red-400 transition-colors break-all sm:break-normal font-medium">
+
+                <a href={`mailto:${bookingEmail}`}
+                  className="text-sm sm:text-base hover:text-blue-600 transition-colors break-all sm:break-normal font-semibold"
+                >
                   {bookingEmail}
                 </a>
               </div>
@@ -58,36 +63,36 @@ export default function Footer() {
           </div>
 
           {/* Links */}
-          <div className="flex items-center gap-4 sm:gap-6">
+          <div className="flex items-center gap-5 sm:gap-6">
             {quickLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.href}
-                className="text-sm font-bold hover:text-red-400 transition-colors relative group"
+                className="text-base sm:text-lg font-black hover:text-blue-600 transition-colors relative group"
               >
                 {link.name}
-                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gradient-to-r from-red-500 to-red-700 group-hover:w-full transition-all duration-300"></span>
+                <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 group-hover:w-full transition-all duration-300"></span>
               </Link>
             ))}
           </div>
         </div>
 
         {/* Copyright */}
-        <div className="mt-8 pt-6 border-t-2 border-gradient-to-r from-red-500/20 via-red-600/20 to-red-500/20" style={{ borderImage: 'linear-gradient(to right, rgba(220, 38, 38, 0.2), rgba(185, 28, 28, 0.2), rgba(220, 38, 38, 0.2)) 1' }}>
-          <p className="text-center text-sm text-gray-400 font-medium">
+        <div className="mt-6 pt-5 border-t-2 border-gray-700">
+          <p className="text-center text-sm sm:text-base text-gray-400 font-semibold">
             © 2025{' '}
 
             <a href={'https://www.uaeflightbookings.com/'}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-red-500 hover:text-red-400 font-bold transition-colors"
+              className="text-blue-600 hover:text-blue-600 font-black transition-colors"
             >
-              Uaeflightbookings.com
+              Compareflights
             </a>{' '}
             is a trading style of Jetset Worldwide Travel & Tourism. All rights reserved.
           </p>
         </div>
-      </div>
-    </footer>
+      </div >
+    </footer >
   );
 }

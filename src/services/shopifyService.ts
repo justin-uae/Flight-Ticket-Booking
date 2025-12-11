@@ -1,327 +1,97 @@
-import client from '../lib/shopify';
+const SHOPIFY_DOMAIN = import.meta.env.VITE_SHOPIFY_STORE_DOMAIN;
+const STOREFRONT_TOKEN = import.meta.env.VITE_SHOPIFY_STOREFRONT_TOKEN;
 
-interface Metafield {
-  key: string;
-  value: string;
-}
+const STOREFRONT_API_URL = `https://${SHOPIFY_DOMAIN}/api/2024-01/graphql.json`;
 
-interface Product {
+export interface Flight {
   id: string;
-  title: string;
-  description: string;
-  price: number;
-  originalPrice: number | null;
-  images: string[];
-  location: string;
+  airline: string;
+  logo: string;
+  flightNumber: string;
+  departureTime: string;
+  arrivalTime: string;
   duration: string;
-  rating: number;
-  reviewsCount: number;
-  groupSize: string;
-  // Car rental specific fields
-  seats?: string;
-  acceleration?: string;
-  maxSpeed?: string;
-  fuelType?: string;
-  year?: string;
-  carType?: string;
-  brand?: string;
-}
-
-interface ProductDetail extends Product {
-  descriptionHtml: string;
-  variants: Variant[];
-  highlights: string[];
-  whatsIncluded: string[];
-  inclusions: string[];
-}
-
-interface Variant {
-  id: string;
-  title: string;
+  stops: number;
   price: number;
-  available: boolean;
-}
-
-interface CartLineItem {
-  merchandiseId: string;
-  quantity: number;
-  attributes?: Array<{ key: string; value: string }>;
-}
-
-interface Cart {
-  id: string;
-  checkoutUrl: string;
-  lines: any[];
-  cost: {
-    totalAmount: {
-      amount: string;
-      currencyCode: string;
-    };
+  currency: string;
+  seats: number;
+  rating: number;
+  amenities: string[];
+  departureAirport: string;
+  arrivalAirport: string;
+  aircraftType: string;
+  cabinClass: string;
+  baggage: {
+    checked: string;
+    cabin: string;
   };
 }
 
-interface CustomerAccessToken {
-  accessToken: string;
-  expiresAt: string;
-}
-
-interface Customer {
+export interface Destination {
   id: string;
-}
-
-interface OrderItem {
-  title: string;
-  quantity: number;
-  price: number;
-  image?: string;
-}
-
-interface Order {
-  id: string;
-  orderNumber: number;
-  date: string;
-  subtotal: number;
-  tax: number;
-  shipping: number;
-  total: number;
-  currencyCode: string;
-  status: string;
-  items: OrderItem[];
-}
-
-export interface CustomerData {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-  createdAt: string;
-  displayName: string;
-}
-
-
-export const getAllCityCollections = async (): Promise<{
-  id: string;
-  title: string;
-  description: string;
+  city: string;
+  country: string;
+  airportCode: string;
+  airportFull: string;
   image: string;
-  handle: string;
-}[]> => {
-  const query = `
-    query GetCollections {
-      collections(first: 20) {
+  description: string;
+  priceFrom: number;
+  currency: string;
+  popularRoutes: string[];
+  flights: number;
+  flightOptions: number;
+  airlines: string[];
+}
+
+// GraphQL Query to fetch collection by handle
+const COLLECTION_QUERY = `
+  query GetCollection($handle: String!) {
+    collection(handle: $handle) {
+      id
+      title
+      description
+      products(first: 20) {
         edges {
           node {
             id
             title
-            handle
-            description
-            image {
-              url
-              altText
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(query);
-
-  return data?.collections?.edges?.map((edge: any) => ({
-    id: edge.node.id,
-    title: edge.node.title,
-    description: edge.node.description,
-    image: edge.node.image?.url || "",
-    handle: edge.node.handle,
-  }));
-};
-
-export const getCollectionsWithProducts = async () => {
-  const query = `
-    query GetCollectionsWithProducts {
-      collections(first: 10) {
-        edges {
-          node {
-            id
-            title
-            handle
-            description
-            image {
-              url
-              altText
-            }
-            metafields(identifiers: [
-              {namespace: "custom", key: "banner"}
-            ]) {
-              key
-              value
-            }
-            products(first: 20) {
-              edges {
-                node {
-                  id
-                  title
-                  handle
-                  images(first: 1) {
-                    edges {
-                      node {
-                        url
-                        altText
-                      }
-                    }
-                  }
-                  metafields(identifiers: [
-                    {namespace: "custom", key: "location"}
-                  ]) {
-                    key
-                    value
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  try {
-    const { data } = await client.request(query);
-
-    if (!data?.collections?.edges) return [];
-
-    return data.collections.edges.map((collectionEdge: any) => {
-      const collection = collectionEdge.node;
-
-      // Extract banner media IDs from collection metafield
-      const bannerMetafield = collection.metafields?.find(
-        (m: any) => m?.key === "banner"
-      )?.value;
-
-      let bannerImages: string[] = [];
-      if (bannerMetafield) {
-        try {
-          // Parse the metafield value (should be JSON array of media gids)
-          const mediaIds = JSON.parse(bannerMetafield);
-
-          if (Array.isArray(mediaIds) && mediaIds.length > 0) {
-            // For Shopify MediaImage IDs, we need to fetch them separately or construct URLs
-            bannerImages = mediaIds.map((mediaId: string) => {
-              if (typeof mediaId === 'string') {
-                // If it's already a URL, use it directly
-                if (mediaId.startsWith('http')) {
-                  return mediaId;
-                }
-                // If it's a gid, we'll need to fetch the media details
-                // For now, we'll construct a placeholder URL
-                return mediaId;
-              }
-              return '';
-            }).filter((url: string) => url);
-          }
-        } catch (e) {
-          console.error("Error parsing banner metafield:", e);
-        }
-      }
-
-      return {
-        id: collection.id,
-        title: collection.title,
-        handle: collection.handle,
-        description: collection.description,
-        image: collection.image?.url || "",
-        bannerImages: bannerImages,
-        bannerMediaIds: bannerMetafield ? JSON.parse(bannerMetafield) : [], // Store raw media IDs for later fetching
-        products: collection.products?.edges?.map((productEdge: any) => ({
-          id: productEdge.node.id,
-          title: productEdge.node.title,
-          image: productEdge.node.images?.edges[0]?.node?.url || "",
-          location:
-            productEdge.node.metafields?.find((m: any) => m?.key === "location")
-              ?.value || "",
-        })),
-      };
-    });
-  } catch (error) {
-    console.error("Error fetching collections with products:", error);
-    return [];
-  }
-};
-
-// Separate function to fetch media URLs from media IDs
-export const getMediaUrls = async (mediaIds: string[]) => {
-  if (!mediaIds || mediaIds.length === 0) return [];
-
-  const query = `
-    query GetMediaUrls($ids: [ID!]!) {
-      nodes(ids: $ids) {
-        ... on MediaImage {
-          id
-          image {
-            url
-            altText
-          }
-        }
-      }
-    }
-  `;
-
-  try {
-    const { data } = await client.request(query, { variables: { ids: mediaIds } });
-
-    if (!data?.nodes) return [];
-
-    return data.nodes
-      .filter((node: any) => node?.image?.url)
-      .map((node: any) => node.image.url);
-  } catch (error) {
-    console.error("Error fetching media URLs:", error);
-    return [];
-  }
-};
-
-// Fetch all excursions (products)
-export const getAllExcursions = async (): Promise<Product[]> => {
-  const query = `
-    query GetProducts {
-      products(first: 240) {
-        edges {
-          node {
-            id
-            title
-            description
+            vendor
             priceRange {
               minVariantPrice {
                 amount
                 currencyCode
               }
             }
-            compareAtPriceRange {
-              minVariantPrice {
-                amount
-              }
-            }
-            images(first: 5) {
+            images(first: 1) {
               edges {
                 node {
                   url
-                  altText
                 }
               }
             }
+            tags
             metafields(identifiers: [
-              {namespace: "custom", key: "location"},
-              {namespace: "custom", key: "duration"},
-              {namespace: "custom", key: "rating"},
-              {namespace: "custom", key: "reviews_count"},
-              {namespace: "custom", key: "group_size"},
-              {namespace: "custom", key: "seats"},
-              {namespace: "custom", key: "0_100_km_h"},
-              {namespace: "custom", key: "max_speed"},
-              {namespace: "custom", key: "fuel_type"},
-              {namespace: "custom", key: "year"},
-              {namespace: "custom", key: "car_type"},
-              {namespace: "custom", key: "brand"}
+              {namespace: "flight", key: "number"},
+              {namespace: "flight", key: "departure_time"},
+              {namespace: "flight", key: "arrival_time"},
+              {namespace: "flight", key: "duration"},
+              {namespace: "flight", key: "stops"},
+              {namespace: "flight", key: "seats"},
+              {namespace: "flight", key: "rating"},
+              {namespace: "flight", key: "departure_airport"},
+              {namespace: "flight", key: "arrival_airport"},
+              {namespace: "flight", key: "aircraft_type"},
+              {namespace: "flight", key: "cabin_class"},
+              {namespace: "flight", key: "checked_baggage"},
+              {namespace: "flight", key: "cabin_baggage"},
+              {namespace: "flight", key: "amenities"},
+              {namespace: "destination", key: "city"},
+              {namespace: "destination", key: "country"},
+              {namespace: "destination", key: "airport_code"},
+              {namespace: "destination", key: "description"},
+              {namespace: "destination", key: "image_url"},
+              {namespace: "destination", key: "popular_routes"},
+              {namespace: "destination", key: "weekly_flights"}
             ]) {
               key
               value
@@ -330,575 +100,366 @@ export const getAllExcursions = async (): Promise<Product[]> => {
         }
       }
     }
-  `;
+  }
+`;
 
-  const { data } = await client.request(query);
-  return data.products.edges.map((edge: any) => ({
-    id: edge.node.id,
-    title: edge.node.title,
-    description: edge.node.description,
-    price: parseFloat(edge.node.priceRange.minVariantPrice.amount),
-    originalPrice: edge.node.compareAtPriceRange?.minVariantPrice?.amount
-      ? parseFloat(edge.node.compareAtPriceRange.minVariantPrice.amount)
-      : null,
-    images: edge.node.images.edges.map((img: any) => img.node.url),
-    location: edge.node.metafields?.find((m: Metafield) => m?.key === 'location')?.value || '',
-    duration: edge.node.metafields?.find((m: Metafield) => m?.key === 'duration')?.value || '',
-    rating: parseFloat(edge.node.metafields?.find((m: Metafield) => m?.key === 'rating')?.value || '0'),
-    reviewsCount: parseInt(edge.node.metafields?.find((m: Metafield) => m?.key === 'reviews_count')?.value || '0'),
-    groupSize: edge.node.metafields?.find((m: Metafield) => m?.key === 'group_size')?.value || '',
-    // Car rental specific fields
-    seats: edge.node.metafields?.find((m: Metafield) => m?.key === 'seats')?.value || '',
-    acceleration: edge.node.metafields?.find((m: Metafield) => m?.key === '0_100_km_h')?.value || '',
-    maxSpeed: edge.node.metafields?.find((m: Metafield) => m?.key === 'max_speed')?.value || '',
-    fuelType: edge.node.metafields?.find((m: Metafield) => m?.key === 'fuel_type')?.value || '',
-    year: edge.node.metafields?.find((m: Metafield) => m?.key === 'year')?.value || '',
-    carType: edge.node.metafields?.find((m: Metafield) => m?.key === 'car_type')?.value || '',
-    brand: edge.node.metafields?.find((m: Metafield) => m?.key === 'brand')?.value || '',
-  }));
+// Fetch popular destinations from collection
+export const fetchPopularDestinations = async (): Promise<Destination[]> => {
+  try {
+    const response = await fetch(STOREFRONT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({
+        query: COLLECTION_QUERY,
+        variables: { handle: 'popular' },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error('Shopify API errors:', data.errors);
+      throw new Error('Failed to fetch popular destinations');
+    }
+
+    if (!data.data.collection) {
+      console.warn('Popular collection not found');
+      return [];
+    }
+
+    const products = data.data.collection.products.edges;
+
+    // Group flights by destination
+    const destinationsMap = new Map<string, {
+      destination: Destination;
+      products: any[];
+      airlines: Set<string>;
+      lowestPrice: number;
+    }>();
+
+    products.forEach((edge: any) => {
+      const product = edge.node;
+      const metafields = product.metafields.reduce((acc: any, field: any) => {
+        if (field) acc[field.key] = field.value;
+        return acc;
+      }, {});
+
+      // Extract destination info
+      const arrivalAirport = metafields.arrival_airport || '';
+      const airportCode = arrivalAirport.match(/\(([^)]+)\)/)?.[1] || '';
+
+      // Extract city and country from tags or airport name
+      const cityMatch = arrivalAirport.match(/^([^(]+)/);
+      const city = cityMatch ? cityMatch[1].trim().split(' ')[0] : '';
+      const country = extractCountryFromTags(product.tags);
+
+      // Create unique key for destination (by airport code)
+      const destinationKey = airportCode;
+
+      const price = parseFloat(product.priceRange.minVariantPrice.amount);
+      const currency = product.priceRange.minVariantPrice.currencyCode;
+
+      if (!destinationsMap.has(destinationKey)) {
+        // Parse popular routes
+        let popularRoutes: string[] = [];
+        try {
+          const routes = JSON.parse(metafields.popular_routes || '[]');
+          popularRoutes = routes;
+        } catch {
+          // Extract from departure airport
+          const depAirport = metafields.departure_airport || '';
+          const depCode = depAirport.match(/\(([^)]+)\)/)?.[1];
+          popularRoutes = depCode ? [depCode] : ['DXB'];
+        }
+
+        // Create new destination entry
+        destinationsMap.set(destinationKey, {
+          destination: {
+            id: destinationKey,
+            city: city,
+            country: country,
+            airportCode: airportCode,
+            airportFull: arrivalAirport,
+            image: metafields.image_url || product.images.edges[0]?.node.url ||
+              `https://source.unsplash.com/800x600/?${encodeURIComponent(city)},city`,
+            description: `${city}, ${country}`,
+            priceFrom: price,
+            currency: currency,
+            popularRoutes: popularRoutes,
+            flights: parseInt(metafields.weekly_flights || '0'),
+            flightOptions: 1,
+            airlines: [product.vendor]
+          },
+          products: [product],
+          airlines: new Set([product.vendor]),
+          lowestPrice: price
+        });
+      } else {
+        // Update existing destination
+        const existing = destinationsMap.get(destinationKey)!;
+        existing.products.push(product);
+        existing.airlines.add(product.vendor);
+        existing.destination.flightOptions = existing.products.length;
+        existing.destination.airlines = Array.from(existing.airlines);
+
+        // Update lowest price if this flight is cheaper
+        if (price < existing.lowestPrice) {
+          existing.lowestPrice = price;
+          existing.destination.priceFrom = price;
+        }
+      }
+    });
+
+    // Convert map to array and sort by number of flight options (descending)
+    return Array.from(destinationsMap.values())
+      .map(item => item.destination)
+      .sort((a, b) => b.flightOptions - a.flightOptions);
+
+  } catch (error) {
+    console.error('Error fetching popular destinations:', error);
+    throw error;
+  }
 };
 
-// Fetch single excursion by ID
-export const getExcursionById = async (productId: string): Promise<ProductDetail> => {
-  const query = `
-    query GetProduct($id: ID!) {
-      product(id: $id) {
-        id
-        title
-        description
-        descriptionHtml
-        priceRange {
-          minVariantPrice {
-            amount
-            currencyCode
-          }
-        }
-        compareAtPriceRange {
-          minVariantPrice {
-            amount
-          }
-        }
-        images(first: 10) {
-          edges {
-            node {
-              url
-              altText
+
+// Helper function to extract country from tags
+const extractCountryFromTags = (tags: string[]): string => {
+  const countryTags = tags.filter(tag =>
+    ['India', 'Pakistan', 'Philippines', 'Sri Lanka'].includes(tag)
+  );
+  return countryTags[0] || 'International';
+};
+
+// GraphQL Query to fetch flights
+const FLIGHTS_QUERY = `
+  query GetFlights($query: String!) {
+    products(first: 50, query: $query) {
+      edges {
+        node {
+          id
+          title
+          vendor
+          priceRange {
+            minVariantPrice {
+              amount
+              currencyCode
             }
           }
-        }
-        variants(first: 10) {
-          edges {
-            node {
-              id
-              title
-              priceV2 {
-                amount
-                currencyCode
+          images(first: 1) {
+            edges {
+              node {
+                url
               }
-              availableForSale
             }
           }
-        }
-        metafields(identifiers: [
-          {namespace: "custom", key: "location"},
-          {namespace: "custom", key: "duration"},
-          {namespace: "custom", key: "rating"},
-          {namespace: "custom", key: "reviews_count"},
-          {namespace: "custom", key: "group_size"},
-          {namespace: "custom", key: "highlights"},
-          {namespace: "custom", key: "inclusions"},
-          {namespace: "custom", key: "whats_included"},
-          {namespace: "custom", key: "seats"},
-          {namespace: "custom", key: "0_100_km_h"},
-          {namespace: "custom", key: "max_speed"},
-          {namespace: "custom", key: "fuel_type"},
-          {namespace: "custom", key: "year"},
-          {namespace: "custom", key: "car_type"},
-          {namespace: "custom", key: "brand"}
-        ]) {
-          key
-          value
+          tags
+          metafields(identifiers: [
+            {namespace: "flight", key: "number"},
+            {namespace: "flight", key: "departure_time"},
+            {namespace: "flight", key: "arrival_time"},
+            {namespace: "flight", key: "duration"},
+            {namespace: "flight", key: "stops"},
+            {namespace: "flight", key: "seats"},
+            {namespace: "flight", key: "rating"},
+            {namespace: "flight", key: "departure_airport"},
+            {namespace: "flight", key: "arrival_airport"},
+            {namespace: "flight", key: "aircraft_type"},
+            {namespace: "flight", key: "cabin_class"},
+            {namespace: "flight", key: "checked_baggage"},
+            {namespace: "flight", key: "cabin_baggage"},
+            {namespace: "flight", key: "amenities"}
+          ]) {
+            key
+            value
+          }
         }
       }
     }
-  `;
+  }
+`;
 
-  const { data } = await client.request(query, { variables: { id: productId } });
-  const product = data.product;
+// Fetch flights from Shopify
+export const fetchFlights = async (from: string, to: string): Promise<Flight[]> => {
+  try {
+    // Build search query based on tags
+    const fromCode = from.match(/\(([^)]+)\)/)?.[1] || from;
+    const toCode = to.match(/\(([^)]+)\)/)?.[1] || to;
 
-  const inclusionsRaw = product.metafields?.find((m: Metafield) => m?.key === 'inclusions')?.value;
-  let inclusions: string[] = [];
+    const query = `tag:from-${fromCode} AND tag:to-${toCode} AND product_type:Flight`;
 
-  if (inclusionsRaw) {
+    const response = await fetch(STOREFRONT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({
+        query: FLIGHTS_QUERY,
+        variables: { query },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error('Shopify API errors:', data.errors);
+      throw new Error('Failed to fetch flights');
+    }
+
+    const products = data.data.products.edges;
+
+    return products.map((edge: any) => {
+      const product = edge.node;
+      const metafields = product.metafields.reduce((acc: any, field: any) => {
+        if (field) acc[field.key] = field.value;
+        return acc;
+      }, {});
+
+      // Parse amenities (it's stored as JSON string)
+      let amenities: string[] = [];
+      try {
+        amenities = JSON.parse(metafields.amenities || '[]');
+      } catch {
+        amenities = [];
+      }
+
+      return {
+        id: product.id.split('/').pop() || '',
+        airline: product.vendor,
+        logo: product.images.edges[0]?.node.url || '',
+        flightNumber: metafields.number || '',
+        departureTime: metafields.departure_time || '',
+        arrivalTime: metafields.arrival_time || '',
+        duration: metafields.duration || '',
+        stops: parseInt(metafields.stops || '0'),
+        price: parseFloat(product.priceRange.minVariantPrice.amount),
+        currency: product.priceRange.minVariantPrice.currencyCode,
+        seats: parseInt(metafields.seats || '0'),
+        rating: parseFloat(metafields.rating || '0'),
+        amenities,
+        departureAirport: metafields.departure_airport || '',
+        arrivalAirport: metafields.arrival_airport || '',
+        aircraftType: metafields.aircraft_type || '',
+        cabinClass: metafields.cabin_class || '',
+        baggage: {
+          checked: metafields.checked_baggage || '',
+          cabin: metafields.cabin_baggage || '',
+        },
+      };
+    });
+  } catch (error) {
+    console.error('Error fetching flights:', error);
+    throw error;
+  }
+};
+
+// Fetch single flight by ID
+const FLIGHT_BY_ID_QUERY = `
+  query GetFlightById($id: ID!) {
+    product(id: $id) {
+      id
+      title
+      vendor
+      priceRange {
+        minVariantPrice {
+          amount
+          currencyCode
+        }
+      }
+      images(first: 1) {
+        edges {
+          node {
+            url
+          }
+        }
+      }
+      metafields(identifiers: [
+        {namespace: "flight", key: "number"},
+        {namespace: "flight", key: "departure_time"},
+        {namespace: "flight", key: "arrival_time"},
+        {namespace: "flight", key: "duration"},
+        {namespace: "flight", key: "stops"},
+        {namespace: "flight", key: "seats"},
+        {namespace: "flight", key: "rating"},
+        {namespace: "flight", key: "departure_airport"},
+        {namespace: "flight", key: "arrival_airport"},
+        {namespace: "flight", key: "aircraft_type"},
+        {namespace: "flight", key: "cabin_class"},
+        {namespace: "flight", key: "checked_baggage"},
+        {namespace: "flight", key: "cabin_baggage"},
+        {namespace: "flight", key: "amenities"}
+      ]) {
+        key
+        value
+      }
+    }
+  }
+`;
+
+export const fetchFlightById = async (id: string): Promise<Flight> => {
+  try {
+    const gid = `gid://shopify/Product/${id}`;
+
+    const response = await fetch(STOREFRONT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({
+        query: FLIGHT_BY_ID_QUERY,
+        variables: { id: gid },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error('Shopify API errors:', data.errors);
+      throw new Error('Failed to fetch flight');
+    }
+
+    const product = data.data.product;
+    const metafields = product.metafields.reduce((acc: any, field: any) => {
+      if (field) acc[field.key] = field.value;
+      return acc;
+    }, {});
+
+    let amenities: string[] = [];
     try {
-      inclusions = JSON.parse(inclusionsRaw);
-    } catch (e) {
-      // If parsing fails, try to split by comma or use as single item
-      inclusions = inclusionsRaw.includes(',')
-        ? inclusionsRaw.split(',').map((s: string) => s.trim())
-        : [inclusionsRaw];
+      amenities = JSON.parse(metafields.amenities || '[]');
+    } catch {
+      amenities = [];
     }
+
+    return {
+      id: product.id.split('/').pop() || '',
+      airline: product.vendor,
+      logo: product.images.edges[0]?.node.url || '',
+      flightNumber: metafields.number || '',
+      departureTime: metafields.departure_time || '',
+      arrivalTime: metafields.arrival_time || '',
+      duration: metafields.duration || '',
+      stops: parseInt(metafields.stops || '0'),
+      price: parseFloat(product.priceRange.minVariantPrice.amount),
+      currency: product.priceRange.minVariantPrice.currencyCode,
+      seats: parseInt(metafields.seats || '0'),
+      rating: parseFloat(metafields.rating || '0'),
+      amenities,
+      departureAirport: metafields.departure_airport || '',
+      arrivalAirport: metafields.arrival_airport || '',
+      aircraftType: metafields.aircraft_type || '',
+      cabinClass: metafields.cabin_class || '',
+      baggage: {
+        checked: metafields.checked_baggage || '',
+        cabin: metafields.cabin_baggage || '',
+      },
+    };
+  } catch (error) {
+    console.error('Error fetching flight:', error);
+    throw error;
   }
-
-  return {
-    id: product.id,
-    title: product.title,
-    description: product.description,
-    descriptionHtml: product.descriptionHtml,
-    price: parseFloat(product.priceRange.minVariantPrice.amount),
-    originalPrice: product.compareAtPriceRange?.minVariantPrice?.amount
-      ? parseFloat(product.compareAtPriceRange.minVariantPrice.amount)
-      : null,
-    images: product.images.edges.map((img: any) => img.node.url),
-    variants: product.variants.edges.map((v: any) => ({
-      id: v.node.id,
-      title: v.node.title,
-      price: parseFloat(v.node.priceV2.amount),
-      available: v.node.availableForSale
-    })),
-    location: product.metafields?.find((m: Metafield) => m?.key === 'location')?.value || '',
-    duration: product.metafields?.find((m: Metafield) => m?.key === 'duration')?.value || '',
-    rating: parseFloat(product.metafields?.find((m: Metafield) => m?.key === 'rating')?.value || '0'),
-    reviewsCount: parseInt(product.metafields?.find((m: Metafield) => m?.key === 'reviews_count')?.value || '0'),
-    groupSize: product.metafields?.find((m: Metafield) => m?.key === 'group_size')?.value || '',
-    highlights: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'highlights')?.value || '[]'),
-    whatsIncluded: JSON.parse(product.metafields?.find((m: Metafield) => m?.key === 'whats_included')?.value || '[]'),
-    inclusions: inclusions,
-    // Car rental specific fields
-    seats: product.metafields?.find((m: Metafield) => m?.key === 'seats')?.value || '',
-    acceleration: product.metafields?.find((m: Metafield) => m?.key === '0_100_km_h')?.value || '',
-    maxSpeed: product.metafields?.find((m: Metafield) => m?.key === 'max_speed')?.value || '',
-    fuelType: product.metafields?.find((m: Metafield) => m?.key === 'fuel_type')?.value || '',
-    year: product.metafields?.find((m: Metafield) => m?.key === 'year')?.value || '',
-    carType: product.metafields?.find((m: Metafield) => m?.key === 'car_type')?.value || '',
-    brand: product.metafields?.find((m: Metafield) => m?.key === 'brand')?.value || '',
-  };
 };
-
-// Create cart (NEW Cart API)
-export const createCart = async (lineItems: CartLineItem[]): Promise<Cart> => {
-  const mutation = `
-    mutation CartCreate($input: CartInput!) {
-      cartCreate(input: $input) {
-        cart {
-          id
-          checkoutUrl
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-                merchandise {
-                  ... on ProductVariant {
-                    id
-                    title
-                    priceV2 {
-                      amount
-                      currencyCode
-                    }
-                    product {
-                      title
-                    }
-                  }
-                }
-                attributes {
-                  key
-                  value
-                }
-              }
-            }
-          }
-          cost {
-            totalAmount {
-              amount
-              currencyCode
-            }
-            subtotalAmount {
-              amount
-              currencyCode
-            }
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      input: {
-        lines: lineItems.map(item => ({
-          merchandiseId: item.merchandiseId,
-          quantity: item.quantity,
-          attributes: item.attributes || []
-        }))
-      }
-    }
-  });
-
-  if (data.cartCreate.userErrors.length > 0) {
-    throw new Error(data.cartCreate.userErrors[0].message);
-  }
-
-  return data.cartCreate.cart;
-};
-
-// Add items to existing cart (NEW Cart API)
-export const addToCart = async (cartId: string, lineItems: CartLineItem[]): Promise<Cart> => {
-  const mutation = `
-    mutation CartLinesAdd($cartId: ID!, $lines: [CartLineInput!]!) {
-      cartLinesAdd(cartId: $cartId, lines: $lines) {
-        cart {
-          id
-          checkoutUrl
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-                merchandise {
-                  ... on ProductVariant {
-                    id
-                    title
-                    priceV2 {
-                      amount
-                      currencyCode
-                    }
-                    product {
-                      title
-                    }
-                  }
-                }
-                attributes {
-                  key
-                  value
-                }
-              }
-            }
-          }
-          cost {
-            totalAmount {
-              amount
-              currencyCode
-            }
-            subtotalAmount {
-              amount
-              currencyCode
-            }
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      cartId,
-      lines: lineItems.map(item => ({
-        merchandiseId: item.merchandiseId,
-        quantity: item.quantity,
-        attributes: item.attributes || []
-      }))
-    }
-  });
-
-  if (data.cartLinesAdd.userErrors.length > 0) {
-    throw new Error(data.cartLinesAdd.userErrors[0].message);
-  }
-
-  return data.cartLinesAdd.cart;
-};
-
-// Update cart line items
-export const updateCartLines = async (cartId: string, lines: Array<{ id: string; quantity: number }>): Promise<Cart> => {
-  const mutation = `
-    mutation CartLinesUpdate($cartId: ID!, $lines: [CartLineUpdateInput!]!) {
-      cartLinesUpdate(cartId: $cartId, lines: $lines) {
-        cart {
-          id
-          checkoutUrl
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-                merchandise {
-                  ... on ProductVariant {
-                    id
-                    title
-                    priceV2 {
-                      amount
-                      currencyCode
-                    }
-                    product {
-                      title
-                    }
-                  }
-                }
-              }
-            }
-          }
-          cost {
-            totalAmount {
-              amount
-              currencyCode
-            }
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      cartId,
-      lines
-    }
-  });
-
-  if (data.cartLinesUpdate.userErrors.length > 0) {
-    throw new Error(data.cartLinesUpdate.userErrors[0].message);
-  }
-
-  return data.cartLinesUpdate.cart;
-};
-
-// Remove cart line items
-export const removeCartLines = async (cartId: string, lineIds: string[]): Promise<Cart> => {
-  const mutation = `
-    mutation CartLinesRemove($cartId: ID!, $lineIds: [ID!]!) {
-      cartLinesRemove(cartId: $cartId, lineIds: $lineIds) {
-        cart {
-          id
-          checkoutUrl
-          lines(first: 10) {
-            edges {
-              node {
-                id
-                quantity
-              }
-            }
-          }
-          cost {
-            totalAmount {
-              amount
-              currencyCode
-            }
-          }
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      cartId,
-      lineIds
-    }
-  });
-
-  if (data.cartLinesRemove.userErrors.length > 0) {
-    throw new Error(data.cartLinesRemove.userErrors[0].message);
-  }
-
-  return data.cartLinesRemove.cart;
-};
-
-//get customer data
-export const getCustomerData = async (customerAccessToken: string): Promise<CustomerData> => {
-  const query = `
-    query GetCustomer($customerAccessToken: String!) {
-      customer(customerAccessToken: $customerAccessToken) {
-        id
-        email
-        firstName
-        lastName
-        createdAt
-        displayName
-      }
-    }
-  `;
-
-  const { data } = await client.request(query, {
-    variables: { customerAccessToken }
-  });
-
-  if (!data.customer) {
-    throw new Error('Customer not found or invalid access token');
-  }
-
-  return data.customer;
-};
-
-// Customer login
-export const customerLogin = async (email: string, password: string): Promise<CustomerAccessToken> => {
-  const mutation = `
-    mutation CustomerAccessTokenCreate($input: CustomerAccessTokenCreateInput!) {
-      customerAccessTokenCreate(input: $input) {
-        customerAccessToken {
-          accessToken
-          expiresAt
-        }
-        customerUserErrors {
-          message
-          field
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      input: {
-        email,
-        password
-      }
-    }
-  });
-
-  if (data.customerAccessTokenCreate.customerUserErrors.length > 0) {
-    throw new Error(data.customerAccessTokenCreate.customerUserErrors[0].message);
-  }
-
-  return data.customerAccessTokenCreate.customerAccessToken;
-};
-
-// Get customer orders (bookings)
-export const getCustomerOrders = async (customerAccessToken: string): Promise<Order[]> => {
-  const query = `
-    query GetCustomerOrders($customerAccessToken: String!) {
-      customer(customerAccessToken: $customerAccessToken) {
-        orders(first: 20, sortKey: PROCESSED_AT, reverse: true) {
-          edges {
-            node {
-              id
-              orderNumber
-              processedAt
-              totalPriceV2 {
-                amount
-                currencyCode
-              }
-              subtotalPriceV2 {
-                amount
-                currencyCode
-              }
-              totalTaxV2 {
-                amount
-                currencyCode
-              }
-              totalShippingPriceV2 {
-                amount
-                currencyCode
-              }
-              fulfillmentStatus
-              financialStatus
-              lineItems(first: 10) {
-                edges {
-                  node {
-                    title
-                    quantity
-                    variant {
-                      priceV2 {
-                        amount
-                        currencyCode
-                      }
-                      image {
-                        url
-                        altText
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(query, {
-    variables: { customerAccessToken }
-  });
-
-  if (!data.customer) {
-    throw new Error('Customer not found or invalid access token');
-  }
-
-  return data.customer.orders.edges.map((edge: any) => ({
-    id: edge.node.id,
-    orderNumber: edge.node.orderNumber,
-    date: edge.node.processedAt,
-    subtotal: parseFloat(edge.node.subtotalPriceV2?.amount || edge.node.totalPriceV2.amount),
-    tax: parseFloat(edge.node.totalTaxV2?.amount || '0'),
-    shipping: parseFloat(edge.node.totalShippingPriceV2?.amount || '0'),
-    total: parseFloat(edge.node.totalPriceV2.amount),
-    currencyCode: edge.node.totalPriceV2.currencyCode,
-    status: edge.node.fulfillmentStatus || edge.node.financialStatus,
-    items: edge.node.lineItems.edges.map((item: any) => ({
-      title: item.node.title,
-      quantity: item.node.quantity,
-      price: parseFloat(item.node.variant.priceV2.amount),
-      image: item.node.variant.image?.url
-    }))
-  }));
-};
-
-// Customer registration
-export const customerRegister = async (
-  email: string,
-  password: string,
-  firstName: string,
-  lastName: string
-): Promise<Customer> => {
-  const mutation = `
-    mutation CustomerCreate($input: CustomerCreateInput!) {
-      customerCreate(input: $input) {
-        customer {
-          id
-        }
-        customerUserErrors {
-          message
-          field
-        }
-      }
-    }
-  `;
-
-  const { data } = await client.request(mutation, {
-    variables: {
-      input: {
-        email,
-        password,
-        firstName,
-        lastName,
-        acceptsMarketing: false
-      }
-    }
-  });
-
-  if (data.customerCreate.customerUserErrors.length > 0) {
-    throw new Error(data.customerCreate.customerUserErrors[0].message);
-  }
-
-  return data.customerCreate.customer;
-};
-
-// Legacy function names for backward compatibility
-export const createCheckout = createCart;
-export const addToCheckout = addToCart;

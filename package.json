@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@reduxjs/toolkit": "^2.9.2",
+    "@reduxjs/toolkit": "^2.11.1",
     "@shopify/storefront-api-client": "^1.0.9",
     "@tailwindcss/vite": "^4.1.17",
     "lucide-react": "^0.548.0",

@@ -51,28 +51,6 @@ export default function WhyChooseUs() {
         }
     ];
 
-    const popularRoutes = [
-        { route: 'Dubai → Mumbai', from: 'Dubai', to: 'Mumbai, India' },
-        { route: 'Abu Dhabi → Delhi', from: 'Abu Dhabi', to: 'Delhi, India' },
-        { route: 'Dubai → Karachi', from: 'Dubai', to: 'Karachi, Pakistan' },
-        { route: 'Sharjah → Manila', from: 'Sharjah', to: 'Manila, Philippines' },
-        { route: 'Dubai → Lahore', from: 'Dubai', to: 'Lahore, Pakistan' }
-    ];
-
-    const handleRouteClick = (from: string, to: string) => {
-        const today = new Date();
-        const dateString = today.toISOString().split('T')[0];
-
-        navigate('/results', {
-            state: {
-                from: from,
-                to: to,
-                date: dateString,
-                passengers: '1 Adult'
-            }
-        });
-    };
-
     const handleSearchFlightsClick = () => {
         // If we're on the home page, scroll to top
         if (location.pathname === '/') {
@@ -92,13 +70,13 @@ export default function WhyChooseUs() {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
                 <div className="text-center mb-12 sm:mb-14 md:mb-16">
-                    <div className="inline-flex items-center gap-2 bg-gradient-to-r from-purple-100 to-blue-100 px-4 py-2 rounded-full mb-4 border border-purple-300">
-                        <Sparkles className="w-4 h-4 text-purple-600" />
-                        <span className="text-purple-700 text-sm font-bold uppercase tracking-wider">Why Choose Us</span>
+                    <div className="inline-flex items-center gap-2 bg-blue-100 px-4 py-2 rounded-full mb-4 border border-blue-300">
+                        <Sparkles className="w-4 h-4 text-blue-600" />
+                        <span className="text-blue-700 text-sm font-bold uppercase tracking-wider">Why Choose Us</span>
                     </div>
                     <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-gray-900 mb-4 sm:mb-5">
                         Your Trusted Flight
-                        <span className="block bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        <span className="block text-blue-600">
                             Booking Partner
                         </span>
                     </h2>
@@ -114,15 +92,15 @@ export default function WhyChooseUs() {
                         return (
                             <div
                                 key={index}
-                                className="group bg-white rounded-2xl p-6 sm:p-7 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center border-2 border-transparent hover:border-purple-200 relative overflow-hidden"
+                                className="group bg-white rounded-2xl p-6 sm:p-7 md:p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2 text-center border-2 border-transparent hover:border-blue-200 relative overflow-hidden"
                             >
                                 {/* Decorative corner accent */}
-                                <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-purple-100 to-blue-100 rounded-bl-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                                <div className="absolute top-0 right-0 w-20 h-20 bg-blue-100 rounded-bl-full opacity-50 group-hover:opacity-100 transition-opacity"></div>
 
-                                <div className="relative bg-gradient-to-br from-purple-600 via-blue-600 to-purple-600 w-16 h-16 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <div className="relative bg-blue-600 w-16 h-16 sm:w-18 sm:h-18 rounded-2xl flex items-center justify-center mx-auto mb-5 sm:mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300">
                                     <Icon className="w-8 h-8 sm:w-9 sm:h-9 text-white" />
                                 </div>
-                                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-purple-700 transition-colors">
+                                <h3 className="text-lg sm:text-xl font-bold text-gray-900 mb-2 sm:mb-3 group-hover:text-blue-700 transition-colors">
                                     {feature.title}
                                 </h3>
                                 <p className="text-sm sm:text-base text-gray-600 leading-relaxed">
@@ -136,8 +114,8 @@ export default function WhyChooseUs() {
                 {/* Stats Section */}
                 <div className="relative bg-gradient-to-br from-white to-gray-50/50 rounded-3xl shadow-2xl p-8 sm:p-10 md:p-14 border-2 border-gray-200 overflow-hidden">
                     {/* Decorative background pattern */}
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-purple-100 to-blue-100 rounded-full opacity-20 blur-3xl"></div>
-                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-gradient-to-tr from-blue-100 to-purple-100 rounded-full opacity-20 blur-3xl"></div>
+                    <div className="absolute top-0 right-0 w-64 h-64 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
+                    <div className="absolute bottom-0 left-0 w-64 h-64 bg-blue-100 rounded-full opacity-20 blur-3xl"></div>
 
                     <div className="relative">
                         <div className="text-center mb-10">
@@ -152,10 +130,10 @@ export default function WhyChooseUs() {
                                 const Icon = stat.icon;
                                 return (
                                     <div key={index} className="text-center group">
-                                        <div className="bg-gradient-to-br from-purple-100 to-blue-100 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 border-2 border-purple-300">
-                                            <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-purple-600" />
+                                        <div className="bg-blue-100 w-16 h-16 sm:w-18 sm:h-18 md:w-20 md:h-20 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-5 shadow-md group-hover:shadow-xl group-hover:scale-110 transition-all duration-300 border-2 border-blue-300">
+                                            <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 text-blue-600" />
                                         </div>
-                                        <div className="text-3xl sm:text-4xl md:text-5xl font-black bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-2">
+                                        <div className="text-3xl sm:text-4xl md:text-5xl font-black text-blue-600 mb-2">
                                             {stat.number}
                                         </div>
                                         <div className="text-xs sm:text-sm md:text-base text-gray-700 font-bold">
@@ -169,7 +147,7 @@ export default function WhyChooseUs() {
                 </div>
 
                 {/* CTA Banner */}
-                <div className="mt-12 sm:mt-16 md:mt-20 relative bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 rounded-3xl p-8 sm:p-10 md:p-14 text-center shadow-2xl overflow-hidden">
+                <div className="mt-12 sm:mt-16 md:mt-20 relative bg-blue-600 rounded-3xl p-8 sm:p-10 md:p-14 text-center shadow-2xl overflow-hidden">
                     {/* Animated background pattern */}
                     <div className="absolute inset-0 opacity-10">
                         <div className="absolute top-10 left-10 w-32 h-32 bg-white rounded-full blur-2xl animate-pulse"></div>
@@ -194,28 +172,12 @@ export default function WhyChooseUs() {
                         <div className="flex justify-center px-4 mb-8">
                             <button
                                 onClick={handleSearchFlightsClick}
-                                className="group w-full sm:w-auto bg-white text-purple-700 hover:bg-gray-50 font-bold px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 text-sm sm:text-base md:text-lg rounded-full transition-all shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2"
+                                className="group w-full sm:w-auto bg-white text-blue-700 hover:bg-gray-50 font-bold px-6 sm:px-8 md:px-10 py-3 sm:py-3.5 md:py-4 text-sm sm:text-base md:text-lg rounded-full transition-all shadow-xl hover:shadow-2xl transform hover:scale-105 flex items-center justify-center gap-2"
                             >
                                 <Plane className="w-4 h-4 sm:w-5 sm:h-5" />
                                 <span>Search Flights</span>
                                 <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                             </button>
-                        </div>
-
-                        {/* Popular Routes */}
-                        <div className="mt-8 pt-8 border-t border-white/20">
-                            <p className="text-white/90 text-sm font-semibold mb-3">Popular Routes:</p>
-                            <div className="flex flex-wrap gap-2 justify-center">
-                                {popularRoutes.map((item, idx) => (
-                                    <button
-                                        key={idx}
-                                        onClick={() => handleRouteClick(item.from, item.to)}
-                                        className="bg-white/10 backdrop-blur-sm border border-white/20 text-white text-xs font-semibold px-3 py-1.5 rounded-full hover:bg-white/20 hover:scale-105 transition-all cursor-pointer"
-                                    >
-                                        {item.route}
-                                    </button>
-                                ))}
-                            </div>
                         </div>
                     </div>
                 </div>
