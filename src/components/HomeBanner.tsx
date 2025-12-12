@@ -135,7 +135,7 @@ const Home = () => {
                         )}
 
                         {/* Clean Modern Search Card */}
-                        <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-visible p-6 sm:p-8 border border-white/40">
+                        <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-visible p-4 sm:p-8 border border-white/40">
                             <div className="space-y-4">
                                 {/* From Location */}
                                 <div className="relative" ref={fromDropdownRef}>
