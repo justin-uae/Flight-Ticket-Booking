@@ -96,7 +96,7 @@ function ContactForm() {
                     {/* Contact Form */}
                     <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border-2 border-gray-200">
                         <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                            <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                            <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                                 <Send className="w-6 h-6 text-white" />
                             </div>
                             <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Send a Message</h2>
@@ -114,7 +114,7 @@ function ContactForm() {
                                     onChange={handleChange}
                                     required
                                     disabled={formStatus === 'loading'}
-                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
+                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
                                     placeholder="John Doe"
                                 />
                             </div>
@@ -130,7 +130,7 @@ function ContactForm() {
                                     onChange={handleChange}
                                     required
                                     disabled={formStatus === 'loading'}
-                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
+                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
                                     placeholder="your@email.com"
                                 />
                             </div>
@@ -146,7 +146,7 @@ function ContactForm() {
                                     required
                                     disabled={formStatus === 'loading'}
                                     rows={6}
-                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
+                                    className="w-full px-4 sm:px-5 py-3 sm:py-4 text-base border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-blue-400 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed transition-all font-medium"
                                     placeholder="Tell us about your flight booking needs..."
                                 />
                             </div>
@@ -163,7 +163,7 @@ function ContactForm() {
                             <button
                                 type="submit"
                                 disabled={formStatus === 'loading'}
-                                className="w-full bg-gradient-to-r from-purple-600 via-blue-600 to-purple-600 hover:from-purple-700 hover:via-blue-700 hover:to-purple-700 text-white font-black py-4 sm:py-5 text-base sm:text-lg rounded-xl transition-all flex items-center justify-center gap-3 shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                                className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 sm:py-5 text-base sm:text-lg rounded-xl transition-all flex items-center justify-center gap-3 shadow-xl transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
                             >
                                 {formStatus === 'loading' ? (
                                     <>
@@ -181,11 +181,11 @@ function ContactForm() {
                             {/* reCAPTCHA Notice */}
                             <p className="text-xs text-gray-500 text-center font-medium">
                                 This site is protected by reCAPTCHA and the Google{' '}
-                                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 font-bold">
+                                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-bold">
                                     Privacy Policy
                                 </a>{' '}
                                 and{' '}
-                                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:text-purple-700 font-bold">
+                                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-700 font-bold">
                                     Terms of Service
                                 </a>{' '}
                                 apply.
@@ -217,7 +217,7 @@ function ContactForm() {
                         {/* Contact Info */}
                         <div className="bg-white rounded-3xl p-8 sm:p-10 shadow-2xl border-2 border-gray-200">
                             <div className="flex items-center gap-3 mb-6 sm:mb-8">
-                                <div className="w-12 h-12 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                                <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center shadow-lg">
                                     <Mail className="w-6 h-6 text-white" />
                                 </div>
                                 <h2 className="text-2xl sm:text-3xl font-black text-gray-900">Contact Details</h2>
@@ -225,31 +225,31 @@ function ContactForm() {
 
                             <div className="space-y-6">
                                 <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl hover:shadow-lg transition-all">
-                                    <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
+                                    <div className="bg-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
                                         <Phone className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-black text-base text-gray-900 mb-1">Phone</h3>
-                                        <a href={`tel:+${phoneNumber}`} className="text-sm text-purple-700 hover:text-purple-800 transition-colors break-all font-bold">
+                                        <a href={`tel:+${phoneNumber}`} className="text-sm text-blue-700 hover:text-blue-800 transition-colors break-all font-bold">
                                             +{phoneNumber}
                                         </a>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl hover:shadow-lg transition-all">
-                                    <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
+                                    <div className="bg-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
                                         <Mail className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="min-w-0">
                                         <h3 className="font-black text-base text-gray-900 mb-1">Email</h3>
-                                        <a href={`mailto:${bookingEmail}`} className="text-sm text-purple-700 hover:text-purple-800 transition-colors break-all font-bold">
+                                        <a href={`mailto:${bookingEmail}`} className="text-sm text-blue-700 hover:text-blue-800 transition-colors break-all font-bold">
                                             {bookingEmail}
                                         </a>
                                     </div>
                                 </div>
 
                                 <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl hover:shadow-lg transition-all">
-                                    <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
+                                    <div className="bg-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
                                         <MapPin className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="min-w-0">
@@ -260,7 +260,7 @@ function ContactForm() {
                                 </div>
 
                                 <div className="flex items-start gap-4 p-5 bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 rounded-xl hover:shadow-lg transition-all">
-                                    <div className="bg-gradient-to-br from-purple-600 to-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
+                                    <div className="bg-blue-600 p-3 rounded-xl flex-shrink-0 shadow-md">
                                         <Clock className="w-6 h-6 text-white" />
                                     </div>
                                     <div className="min-w-0">
@@ -289,7 +289,7 @@ function ContactForm() {
                 </div>
 
                 {/* Trust Banner */}
-                <div className="mt-12 sm:mt-16 bg-gradient-to-br from-purple-600 via-blue-600 to-purple-600 rounded-3xl p-8 sm:p-10 text-center text-white shadow-2xl relative overflow-hidden">
+                <div className="mt-12 sm:mt-16 bg-blue-600 rounded-3xl p-8 sm:p-10 text-center text-white shadow-2xl relative overflow-hidden">
                     {/* Decorative elements */}
                     <div className="absolute top-0 right-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
                     <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>

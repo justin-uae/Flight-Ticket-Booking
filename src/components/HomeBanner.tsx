@@ -17,7 +17,7 @@ const Home = () => {
     const [showFromDropdown, setShowFromDropdown] = useState(false);
     const [showToDropdown, setShowToDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
-    const [hasFetchedAirports, setHasFetchedAirports] = useState(false); // Add this
+    const [hasFetchedAirports, setHasFetchedAirports] = useState(false);
 
     const fromDropdownRef = useRef<HTMLDivElement>(null);
     const toDropdownRef = useRef<HTMLDivElement>(null);
@@ -98,35 +98,37 @@ const Home = () => {
     const hasAirportData = uaeAirports.length > 0 && Object.keys(destinationCities).length > 0;
 
     return (
-        <div className="relative min-h-screen overflow-hidden">
+        <div className="relative min-h-screen w-full overflow-hidden">
             {/* Background Image */}
-            <div className="absolute inset-0">
+            <div className="absolute inset-0 w-full h-full">
                 <LazyImage
-                    src={bannerImage || ''}
+                    src={bannerImage || Flight}
                     alt="Flight Background"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover object-center"
                 />
+                {/* Dark Overlay for better text visibility */}
+                <div className="absolute inset-0 bg-gradient-to-br from-black/90 via-black/0 to-black/0"></div>
             </div>
 
             {/* Content Container */}
-            <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16">
-                <div className="flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-12">
+            <div className="relative z-10 w-full mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 sm:py-12 lg:py-16 min-h-screen flex items-center">
+                <div className="w-full flex flex-col lg:flex-row lg:items-start gap-8 lg:gap-12">
 
                     {/* Left Side - Booking Form Card */}
                     <div className="w-full lg:w-[500px] xl:w-[550px]">
                         {/* Title Above Card */}
                         <div className="mb-6 sm:mb-8">
-                            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-white mb-3 drop-shadow-2xl leading-tight">
+                            <h1 className="text-3xl sm:text-4xl lg:text-6xl font-black text-white mb-3 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] leading-tight [text-shadow:_2px_2px_8px_rgb(0_0_0_/_80%)]">
                                 Find Your Perfect Flight
                             </h1>
-                            <p className="text-white text-base sm:text-lg lg:text-xl font-semibold drop-shadow-lg">
+                            <p className="text-white text-base sm:text-lg lg:text-2xl font-bold drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)] [text-shadow:_1px_1px_4px_rgb(0_0_0_/_70%)]">
                                 Compare flights and book the best deals
                             </p>
                         </div>
 
                         {/* Error Message if no airport data */}
                         {!hasAirportData && error && (
-                            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-4">
+                            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-4 backdrop-blur-sm">
                                 <p className="font-semibold">Airport data unavailable</p>
                                 <p className="text-sm">Please contact support or try again later.</p>
                             </div>
@@ -186,7 +188,7 @@ const Home = () => {
 
                                 {/* Dotted Line Connection */}
                                 <div className="flex items-center justify-center relative h-6">
-                                    <div className="absolute left-[28px] top-0 bottom-0 w-0.5 border-l-2 border-dashed border-gray-400"></div>
+                                    <div className="absolute top-0 bottom-0 w-0.5 border-l-2 border-dashed border-gray-400"></div>
                                 </div>
 
                                 {/* To Location */}
