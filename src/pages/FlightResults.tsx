@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plane, Star, Filter, SortAsc, Search, Calendar, Users, X } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
-import { destinationCities, uaeAirports } from '../AirportData/AirportData';
+import { getAirportData } from '../slices/airportSlice';
 
 interface FlightResultsProps {
     searchParams: {
@@ -18,6 +18,7 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { flights, loading, error } = useAppSelector((state) => state.flights);
+    const { uaeAirports, destinationCities } = useAppSelector((state) => state.airports);
 
     // Search form state
     const [searchParams, setSearchParams] = useState(initialSearchParams);
@@ -26,6 +27,13 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
     // Filter and sort state
     const [sortBy, setSortBy] = useState<'price' | 'duration' | 'departure'>('price');
     const [filterStops, setFilterStops] = useState<'all' | 'direct' | '1-stop'>('all');
+
+    // Fetch airport data if not already loaded
+    useEffect(() => {
+        if (uaeAirports.length === 0 && Object.keys(destinationCities).length === 0) {
+            dispatch(getAirportData());
+        }
+    }, [dispatch, uaeAirports.length, destinationCities]);
 
     // Handle search form submission
     const handleSearch = (e: React.FormEvent) => {

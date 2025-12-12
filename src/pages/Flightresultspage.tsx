@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
+import { getAirportData } from '../slices/airportSlice';
 import FlightResults from './FlightResults';
 import { Plane, Search, Calendar, Users } from 'lucide-react';
-import { destinationCities, uaeAirports } from '../AirportData/AirportData';
 
 const FlightResultsPage = () => {
     const dispatch = useAppDispatch();
     const { searchParams: existingSearchParams, loading } = useAppSelector((state) => state.flights);
+    const { uaeAirports, destinationCities } = useAppSelector((state) => state.airports);
 
     // Local search form state
     const [searchParams, setSearchParams] = useState({
@@ -19,6 +20,13 @@ const FlightResultsPage = () => {
 
     // Track if we've performed a search
     const [hasSearched, setHasSearched] = useState(false);
+
+    // Fetch airport data if not already loaded
+    useEffect(() => {
+        if (uaeAirports.length === 0 && Object.keys(destinationCities).length === 0) {
+            dispatch(getAirportData());
+        }
+    }, [dispatch, uaeAirports.length, destinationCities]);
 
     // Get today's date in YYYY-MM-DD format
     const getTodayDate = () => {

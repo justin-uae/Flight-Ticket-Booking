@@ -1,24 +1,38 @@
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, Users, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { useAppDispatch } from '../store/hooks';
+import { useAppDispatch, useAppSelector } from '../store/hooks';
 import Flight from '../assets/Flight.jpg';
 import { searchFlights } from '../slices/flightSlice';
-import { destinationCities, uaeAirports } from '../AirportData/AirportData';
+import { LazyImage } from './LazyImage';
+import { getAirportData } from '../slices/airportSlice';
 
 const Home = () => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const [fromLocation, setFromLocation] = useState('');
     const [toLocation, setToLocation] = useState('');
-    const [date, setDate] = useState('');
+    const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
     const [passengers, setPassengers] = useState('1 Adult');
     const [showFromDropdown, setShowFromDropdown] = useState(false);
     const [showToDropdown, setShowToDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
+    const [hasFetchedAirports, setHasFetchedAirports] = useState(false); // Add this
 
     const fromDropdownRef = useRef<HTMLDivElement>(null);
     const toDropdownRef = useRef<HTMLDivElement>(null);
+
+    const { uaeAirports, destinationCities, bannerImage, loading: airportsLoading, error } = useAppSelector(
+        (state) => state.airports
+    );
+
+    // Fetch airport data on component mount - ONLY ONCE
+    useEffect(() => {
+        if (!hasFetchedAirports && !airportsLoading) {
+            dispatch(getAirportData());
+            setHasFetchedAirports(true);
+        }
+    }, [dispatch, hasFetchedAirports, airportsLoading]);
 
     // Click outside handler
     useEffect(() => {
@@ -60,12 +74,35 @@ const Home = () => {
         }
     };
 
+    // Show loading state while airports are loading (first time only)
+    if (airportsLoading && !hasFetchedAirports) {
+        return (
+            <div className="relative min-h-screen overflow-hidden">
+                <div className="absolute inset-0">
+                    <img
+                        src={Flight}
+                        alt="Flight Background"
+                        className="w-full h-full object-cover"
+                    />
+                </div>
+                <div className="relative z-10 flex items-center justify-center min-h-screen">
+                    <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl">
+                        <div className="text-blue-600 text-xl font-bold">Loading airports...</div>
+                    </div>
+                </div>
+            </div>
+        );
+    }
+
+    // If there's an error or no data, show a message but still render the form
+    const hasAirportData = uaeAirports.length > 0 && Object.keys(destinationCities).length > 0;
+
     return (
         <div className="relative min-h-screen overflow-hidden">
             {/* Background Image */}
             <div className="absolute inset-0">
-                <img
-                    src={Flight}
+                <LazyImage
+                    src={bannerImage || ''}
                     alt="Flight Background"
                     className="w-full h-full object-cover"
                 />
@@ -87,14 +124,23 @@ const Home = () => {
                             </p>
                         </div>
 
+                        {/* Error Message if no airport data */}
+                        {!hasAirportData && error && (
+                            <div className="bg-red-100 border-2 border-red-400 text-red-700 px-4 py-3 rounded-2xl mb-4">
+                                <p className="font-semibold">Airport data unavailable</p>
+                                <p className="text-sm">Please contact support or try again later.</p>
+                            </div>
+                        )}
+
                         {/* Clean Modern Search Card */}
-                        <div className="bg-white/60 backdrop-blur-md rounded-3xl shadow-2xl overflow-visible p-6 sm:p-8 border border-white/40">
+                        <div className="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl overflow-visible p-6 sm:p-8 border border-white/40">
                             <div className="space-y-4">
                                 {/* From Location */}
                                 <div className="relative" ref={fromDropdownRef}>
                                     <button
                                         onClick={() => setShowFromDropdown(!showFromDropdown)}
-                                        className="w-full flex items-center gap-4 bg-white/60 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/60 hover:border-blue-400 hover:bg-white/80 transition shadow-sm hover:shadow-md"
+                                        disabled={!hasAirportData}
+                                        className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
                                         <div className="flex items-center justify-center w-10 h-10 bg-blue-500 rounded-full flex-shrink-0">
                                             <div className="w-3 h-3 bg-white rounded-full"></div>
@@ -107,8 +153,8 @@ const Home = () => {
                                     </button>
 
                                     {/* Dropdown */}
-                                    {showFromDropdown && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/60 p-3 max-h-80 overflow-y-auto z-[100]">
+                                    {showFromDropdown && hasAirportData && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-3 max-h-80 overflow-y-auto z-[100]">
                                             <div className="space-y-1.5">
                                                 {uaeAirports.map((airport, index) => (
                                                     <button
@@ -118,8 +164,8 @@ const Home = () => {
                                                             setShowFromDropdown(false);
                                                         }}
                                                         className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${fromLocation === airport.full
-                                                            ? 'bg-blue-100/80 backdrop-blur-sm border border-blue-400'
-                                                            : 'bg-gray-50/80 backdrop-blur-sm hover:bg-blue-50/80 border border-transparent'
+                                                            ? 'bg-blue-50 border-2 border-blue-400'
+                                                            : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
                                                             }`}
                                                     >
                                                         <div className={`p-2 rounded-lg ${fromLocation === airport.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
@@ -147,9 +193,10 @@ const Home = () => {
                                 <div className="relative" ref={toDropdownRef}>
                                     <button
                                         onClick={() => setShowToDropdown(!showToDropdown)}
-                                        className="w-full flex items-center gap-4 bg-white/60 backdrop-blur-sm rounded-2xl px-5 py-4 border border-white/60 hover:border-blue-400 hover:bg-white/80 transition shadow-sm hover:shadow-md"
+                                        disabled={!hasAirportData}
+                                        className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <div className="flex items-center justify-center w-10 h-10 border-2 border-gray-300 rounded-full flex-shrink-0 bg-white/50">
+                                        <div className="flex items-center justify-center w-10 h-10 border-2 border-gray-300 rounded-full flex-shrink-0 bg-white">
                                             <div className="w-3 h-3 border-2 border-gray-400 rounded-full"></div>
                                         </div>
                                         <div className="flex-1 text-left">
@@ -160,8 +207,8 @@ const Home = () => {
                                     </button>
 
                                     {/* Dropdown with Country Groups */}
-                                    {showToDropdown && (
-                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white/95 backdrop-blur-md rounded-2xl shadow-2xl border border-white/60 p-3 max-h-96 overflow-y-auto z-[100]">
+                                    {showToDropdown && hasAirportData && (
+                                        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-3 max-h-96 overflow-y-auto z-[100]">
                                             {Object.entries(destinationCities).map(([country, cities]) => (
                                                 <div key={country} className="mb-4 last:mb-0">
                                                     <h3 className="text-xs font-black text-gray-600 uppercase tracking-wider mb-2 px-2">
@@ -176,8 +223,8 @@ const Home = () => {
                                                                     setShowToDropdown(false);
                                                                 }}
                                                                 className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${toLocation === city.full
-                                                                    ? 'bg-blue-100/80 backdrop-blur-sm border border-blue-400'
-                                                                    : 'bg-gray-50/80 backdrop-blur-sm hover:bg-blue-50/80 border border-transparent'
+                                                                    ? 'bg-blue-50 border-2 border-blue-400'
+                                                                    : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
                                                                     }`}
                                                             >
                                                                 <div className={`p-2 rounded-lg ${toLocation === city.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
@@ -202,27 +249,28 @@ const Home = () => {
                                 <div className="grid grid-cols-2 gap-4 pt-2">
                                     {/* Date */}
                                     <div>
-                                        <div className="w-full flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl px-4 py-4 border border-white/60 hover:border-blue-400 hover:bg-white/80 transition shadow-sm hover:shadow-md">
-                                            <Calendar className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                        <div className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md">
+                                            <Calendar className="w-5 h-5 text-gray-600 flex-shrink-0" />
                                             <input
                                                 type="date"
                                                 value={date}
                                                 onChange={(e) => setDate(e.target.value)}
                                                 min={new Date().toISOString().split('T')[0]}
                                                 placeholder="Date"
-                                                className="flex-1 outline-none bg-transparent text-gray-900 text-sm font-semibold min-w-0"
+                                                className="flex-1 outline-none bg-transparent text-gray-900 text-sm font-bold min-w-0 [color-scheme:light]"
+                                                style={{ colorScheme: 'light' }}
                                             />
                                         </div>
                                     </div>
 
                                     {/* Passengers */}
                                     <div>
-                                        <div className="w-full flex items-center gap-3 bg-white/60 backdrop-blur-sm rounded-2xl px-4 py-4 border border-white/60 hover:border-blue-400 hover:bg-white/80 transition shadow-sm hover:shadow-md">
-                                            <Users className="w-5 h-5 text-gray-500 flex-shrink-0" />
+                                        <div className="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md">
+                                            <Users className="w-5 h-5 text-gray-600 flex-shrink-0" />
                                             <select
                                                 value={passengers}
                                                 onChange={(e) => setPassengers(e.target.value)}
-                                                className="flex-1 outline-none bg-transparent text-gray-900 text-sm font-semibold min-w-0 cursor-pointer"
+                                                className="flex-1 outline-none bg-transparent text-gray-900 text-sm font-bold min-w-0 cursor-pointer"
                                             >
                                                 <option>1 Adult</option>
                                                 <option>2 Adults</option>
@@ -238,8 +286,8 @@ const Home = () => {
                                 {/* Search Button */}
                                 <button
                                     onClick={handleSearch}
-                                    disabled={loading}
-                                    className="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
+                                    disabled={loading || !hasAirportData}
+                                    className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-4 rounded-2xl shadow-lg hover:shadow-xl transition transform hover:scale-[1.02] text-base disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
                                 >
                                     <span>{loading ? 'Searching...' : 'Search Flights'}</span>
                                 </button>
@@ -249,7 +297,6 @@ const Home = () => {
 
                     {/* Right Side - Optional Content Space */}
                     <div className="hidden lg:block flex-1">
-                        {/* This space can be used for additional content, features, or left empty */}
                     </div>
                 </div>
             </div>

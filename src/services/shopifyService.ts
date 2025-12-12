@@ -43,6 +43,25 @@ export interface Destination {
   airlines: string[];
 }
 
+// Interfaces for airport data
+export interface Airport {
+  name: string;
+  code: string;
+  full: string;
+}
+
+export interface DestinationCity extends Airport {
+  country?: string;
+}
+
+export interface AirportData {
+  uaeAirports: Airport[];
+  destinationCities: {
+    [country: string]: DestinationCity[];
+  };
+  bannerImage?: string; // banner image
+}
+
 // GraphQL Query to fetch collection by handle
 const COLLECTION_QUERY = `
   query GetCollection($handle: String!) {
@@ -102,6 +121,104 @@ const COLLECTION_QUERY = `
     }
   }
 `;
+
+// GraphQL Query to fetch collection metafields (for airport data)
+const COLLECTION_METAFIELDS_QUERY = `
+  query GetCollectionMetafields($handle: String!) {
+    collection(handle: $handle) {
+      id
+      title
+      image {
+        url
+        altText
+      }
+      metafields(identifiers: [
+        {namespace: "custom", key: "uae_airports"},
+        {namespace: "custom", key: "destination_cities"}
+      ]) {
+        key
+        value
+      }
+    }
+  }
+`;
+
+// Fetch airport data from Shopify collection metafields
+export const fetchAirportData = async (): Promise<AirportData> => {
+  try {
+    const response = await fetch(STOREFRONT_API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Shopify-Storefront-Access-Token': STOREFRONT_TOKEN,
+      },
+      body: JSON.stringify({
+        query: COLLECTION_METAFIELDS_QUERY,
+        variables: { handle: 'popular' },
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.errors) {
+      console.error('Shopify API errors:', data.errors);
+      throw new Error('Failed to fetch airport data');
+    }
+
+    if (!data.data?.collection) {
+      console.warn('Flight destinations collection not found');
+      return {
+        uaeAirports: [],
+        destinationCities: {},
+        bannerImage: undefined
+      };
+    }
+
+    const collection = data.data.collection;
+    const metafields = collection.metafields || [];
+
+    // Get banner image from collection
+    const bannerImage = collection.image?.url || undefined;
+
+    const uaeAirportsMetafield = metafields.find((m: any) => m?.key === 'uae_airports');
+    const destinationCitiesMetafield = metafields.find((m: any) => m?.key === 'destination_cities');
+
+    let uaeAirports: Airport[] = [];
+    let destinationCities: { [country: string]: DestinationCity[] } = {};
+
+    // Parse UAE airports
+    if (uaeAirportsMetafield?.value) {
+      try {
+        uaeAirports = JSON.parse(uaeAirportsMetafield.value);
+      } catch (error) {
+        console.error('Error parsing UAE airports:', error);
+      }
+    }
+
+    // Parse destination cities
+    if (destinationCitiesMetafield?.value) {
+      try {
+        destinationCities = JSON.parse(destinationCitiesMetafield.value);
+      } catch (error) {
+        console.error('Error parsing destination cities:', error);
+      }
+    }
+
+    return {
+      uaeAirports,
+      destinationCities,
+      bannerImage
+    };
+  } catch (error) {
+    console.error('Error fetching airport data:', error);
+    // Return empty data as fallback
+    return {
+      uaeAirports: [],
+      destinationCities: {},
+      bannerImage: undefined
+    };
+  }
+};
 
 // Fetch popular destinations from collection
 export const fetchPopularDestinations = async (): Promise<Destination[]> => {
@@ -223,7 +340,6 @@ export const fetchPopularDestinations = async (): Promise<Destination[]> => {
     throw error;
   }
 };
-
 
 // Helper function to extract country from tags
 const extractCountryFromTags = (tags: string[]): string => {
