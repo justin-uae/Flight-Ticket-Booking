@@ -49,7 +49,6 @@ function App() {
         </main>
         <Footer />
         <WhatsAppButton />
-        {/* <SimpleChatbot /> */}
       </Suspense>
     </BrowserRouter>
   );

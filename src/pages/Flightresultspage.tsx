@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
 import { getAirportData } from '../slices/airportSlice';
 import FlightResults from './FlightResults';
-import { Plane, Search, Calendar, Users, ArrowDownUp, MapPin } from 'lucide-react';
+import { Plane, Search, ArrowDownUp, MapPin } from 'lucide-react';
 
 const FlightResultsPage = () => {
     const dispatch = useAppDispatch();
@@ -372,7 +372,6 @@ const FlightResultsPage = () => {
                                     Departure Date
                                 </label>
                                 <div className="relative">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <input
                                         type="date"
                                         value={searchParams.date}
@@ -391,7 +390,6 @@ const FlightResultsPage = () => {
                                     Passengers
                                 </label>
                                 <div className="relative">
-                                    <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                     <select
                                         value={searchParams.passengers}
                                         onChange={(e) => setSearchParams({ ...searchParams, passengers: e.target.value })}

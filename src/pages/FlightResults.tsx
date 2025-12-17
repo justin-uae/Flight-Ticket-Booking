@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plane, Star, Filter, SortAsc, Search, Calendar, Users, X, ArrowDownUp, MapPin } from 'lucide-react';
+import { Plane, Star, Filter, SortAsc, Search, X, ArrowDownUp, MapPin } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
@@ -253,7 +253,6 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                         }}
                                         className="w-full flex items-center gap-3 bg-white rounded-lg px-4 py-3 border-2 border-gray-300 hover:border-blue-400 transition text-left"
                                     >
-                                        <Plane className="w-5 h-5 text-gray-400" />
                                         <span className={`flex-1 text-sm ${searchParams.from ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
                                             {searchParams.from ? getAirportDisplayText(searchParams.from).split('(')[0].trim() : 'Select'}
                                         </span>
@@ -334,7 +333,6 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                         }}
                                         className="w-full flex items-center gap-3 bg-white rounded-lg px-4 py-3 border-2 border-gray-300 hover:border-blue-400 transition text-left"
                                     >
-                                        <Plane className="w-5 h-5 text-gray-400 rotate-90" />
                                         <span className={`flex-1 text-sm ${searchParams.to ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}>
                                             {searchParams.to ? getAirportDisplayText(searchParams.to).split('(')[0].trim() : 'Select'}
                                         </span>
@@ -402,7 +400,6 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                         Departure Date
                                     </label>
                                     <div className="relative">
-                                        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <input
                                             type="date"
                                             value={searchParams.date}
@@ -420,7 +417,6 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                         Passengers
                                     </label>
                                     <div className="relative">
-                                        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                                         <select
                                             value={searchParams.passengers}
                                             onChange={(e) => setSearchParams({ ...searchParams, passengers: e.target.value })}
