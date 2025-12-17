@@ -82,7 +82,7 @@ export default function Footer() {
           <p className="text-center text-sm sm:text-base text-gray-400 font-semibold">
             © 2025{' '}
 
-            <a href={'https://www.uaeflightbookings.com/'}
+            <a href={'https://www.compareflights.ae/'}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-600 font-black transition-colors"
