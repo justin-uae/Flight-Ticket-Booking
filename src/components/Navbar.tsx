@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Menu, X, Plane } from 'lucide-react';
-
+import { Menu, X } from 'lucide-react';
+import { LazyLoadImage } from 'react-lazy-load-image-component';
+import Logo from '../../public/Logo.png'
 interface NavbarProps {
   onBookNowClick?: () => void;
 }
@@ -21,15 +22,18 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-white/95 backdrop-blur-sm text-gray-900 border-b border-gray-200 shadow-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16 sm:h-20">
-          <Link to="/" className="flex items-center space-x-2 sm:space-x-3 group">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-14 sm:h-16 md:h-18 lg:h-20">
+          <Link to="/" className="flex items-center group">
             {/* Logo Icon */}
-            <div className="bg-blue-600 p-2 rounded-lg group-hover:shadow-lg transition-all">
-              <Plane className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+            <div className="flex-shrink-0">
+              <LazyLoadImage
+                src={Logo}
+                alt="Compare Flights UAE Logo"
+                className="h-9 sm:h-11 md:h-13 lg:h-16 w-auto transition-transform duration-300 group-hover:scale-105"
+              />
             </div>
-            {/* Brand Text */}
-            <span className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300">
+            <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 whitespace-nowrap">
               Compare<span className="text-blue-600"> Flights</span>
             </span>
           </Link>

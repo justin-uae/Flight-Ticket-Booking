@@ -87,9 +87,9 @@ export default function Footer() {
               rel="noopener noreferrer"
               className="text-blue-600 hover:text-blue-600 font-black transition-colors"
             >
-              Compareflights
+              Compareflights.ae
             </a>{' '}
-            is a trading style of Jetset Worldwide Travel & Tourism. All rights reserved.
+            is a trading style of Jetset Worldwide Travel & Tourism LLC. All rights reserved.
           </p>
         </div>
       </div >

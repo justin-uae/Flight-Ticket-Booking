@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plane, Star, Filter, SortAsc, Search, Calendar, Users, X } from 'lucide-react';
+import { Plane, Star, Filter, SortAsc, Search, Calendar, Users, X, ArrowDownUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
@@ -12,9 +12,10 @@ interface FlightResultsProps {
         date: string;
         passengers: string;
     };
+    isOutbound: boolean;
 }
 
-const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSearchParams }) => {
+const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSearchParams, isOutbound: initialIsOutbound }) => {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
     const { flights, loading, error } = useAppSelector((state) => state.flights);
@@ -23,6 +24,7 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
     // Search form state
     const [searchParams, setSearchParams] = useState(initialSearchParams);
     const [showSearchForm, setShowSearchForm] = useState(false);
+    const [isOutbound, setIsOutbound] = useState(initialIsOutbound);
 
     // Filter and sort state
     const [sortBy, setSortBy] = useState<'price' | 'duration' | 'departure'>('price');
@@ -35,6 +37,17 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
         }
     }, [dispatch, uaeAirports.length, destinationCities]);
 
+    // Smart swap function
+    const handleSwapLocations = () => {
+        const tempFrom = searchParams.from;
+        setSearchParams({
+            ...searchParams,
+            from: searchParams.to,
+            to: tempFrom
+        });
+        setIsOutbound(!isOutbound);
+    };
+
     // Handle search form submission
     const handleSearch = (e: React.FormEvent) => {
         e.preventDefault();
@@ -46,6 +59,24 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
     const handleClearFilters = () => {
         setFilterStops('all');
         setSortBy('price');
+    };
+
+    // Get available FROM airports based on direction
+    const getFromAirports = () => {
+        if (isOutbound) {
+            return uaeAirports;
+        } else {
+            return Object.values(destinationCities).flat();
+        }
+    };
+
+    // Get available TO airports based on direction
+    const getToAirports = () => {
+        if (isOutbound) {
+            return destinationCities;
+        } else {
+            return { 'UAE': uaeAirports };
+        }
     };
 
     // Filter and sort flights from Redux store
@@ -73,11 +104,26 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
     const filteredFlights = getFilteredFlights();
 
     const handleFlightSelect = (flightId: string) => {
-        navigate(`/flight/${flightId}`);
+        navigate(`/flight/${flightId}`, { state: { isOutbound } });
     };
 
     const handleModifySearch = () => {
         setShowSearchForm(!showSearchForm);
+    };
+
+    // Helper function to get airport display text
+    const getAirportDisplayText = (location: string) => {
+        const uaeAirport = uaeAirports.find(a => a.full === location);
+        if (uaeAirport) {
+            return `${uaeAirport.name} (${uaeAirport.code})`;
+        }
+
+        const destCity = Object.values(destinationCities).flat().find(c => c.full === location);
+        if (destCity) {
+            return `${destCity.name} (${destCity.code})`;
+        }
+
+        return location;
     };
 
     // Extract airport codes
@@ -89,6 +135,9 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
         const today = new Date();
         return today.toISOString().split('T')[0];
     };
+
+    const fromAirports = getFromAirports();
+    const toAirports = getToAirports();
 
     // Loading state
     if (loading) {
@@ -135,10 +184,10 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                         </div>
                         <form onSubmit={handleSearch} className="p-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-                                {/* From - UAE Airports */}
+                                {/* From */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                                        From (UAE)
+                                        {isOutbound ? 'From (UAE)' : 'From (International)'}
                                     </label>
                                     <div className="relative">
                                         <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -148,8 +197,8 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                             className="w-full pl-10 pr-4 py-3 border-2 border-gray-300 rounded-lg font-semibold text-gray-900 focus:border-blue-600 focus:outline-none"
                                             required
                                         >
-                                            <option value="">Select UAE City</option>
-                                            {uaeAirports.map((airport, index) => (
+                                            <option value="">Select Departure</option>
+                                            {fromAirports.map((airport, index) => (
                                                 <option key={`${airport.full}-${index}`} value={airport.full}>
                                                     {airport.name} ({airport.code})
                                                 </option>
@@ -158,10 +207,23 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                     </div>
                                 </div>
 
-                                {/* To - Destination Cities */}
+                                {/* Swap Button */}
+                                <div className="flex items-end justify-center sm:col-span-2 lg:col-span-1">
+                                    <button
+                                        type="button"
+                                        onClick={handleSwapLocations}
+                                        disabled={!searchParams.from || !searchParams.to}
+                                        className="bg-white border-2 border-gray-300 rounded-lg p-3 hover:bg-blue-50 hover:border-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                                        title="Swap locations"
+                                    >
+                                        <ArrowDownUp className="w-5 h-5 text-gray-600" />
+                                    </button>
+                                </div>
+
+                                {/* To */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 mb-2">
-                                        To (Destination)
+                                        {isOutbound ? 'To (International)' : 'To (UAE)'}
                                     </label>
                                     <div className="relative">
                                         <Plane className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 rotate-90" />
@@ -172,10 +234,10 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                             required
                                         >
                                             <option value="">Select Destination</option>
-                                            {Object.entries(destinationCities).map(([country, cities]) => (
+                                            {Object.entries(toAirports).map(([country, cities]) => (
                                                 <optgroup key={country} label={country}>
-                                                    {cities.map((city) => (
-                                                        <option key={city.full} value={city.full}>
+                                                    {cities.map((city, index) => (
+                                                        <option key={`${city.full}-${index}`} value={city.full}>
                                                             {city.name} ({city.code})
                                                         </option>
                                                     ))}
@@ -277,12 +339,12 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                             <div>
                                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">From</p>
                                 <p className="text-xl sm:text-2xl font-black text-gray-900">{getFromCode()}</p>
-                                <p className="text-xs text-gray-600 font-semibold truncate">{searchParams.from.split('(')[0].trim()}</p>
+                                <p className="text-xs text-gray-600 font-semibold truncate">{getAirportDisplayText(searchParams.from).split('(')[0].trim()}</p>
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">To</p>
                                 <p className="text-xl sm:text-2xl font-black text-gray-900">{getToCode()}</p>
-                                <p className="text-xs text-gray-600 font-semibold truncate">{searchParams.to.split('(')[0].trim()}</p>
+                                <p className="text-xs text-gray-600 font-semibold truncate">{getAirportDisplayText(searchParams.to).split('(')[0].trim()}</p>
                             </div>
                             <div>
                                 <p className="text-xs text-gray-500 font-bold uppercase tracking-wider mb-1">Date</p>
@@ -452,6 +514,10 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                         <div>
                                             <p className="text-xs text-gray-500 font-bold uppercase mb-1">Price</p>
                                             <div className="flex items-baseline gap-1">
+                                                {/* striked price */}
+                                                <div className="text-lg text-gray-500 font-bold line-through mb-0.5">
+                                                    {flight?.price + 100} AED
+                                                </div>
                                                 <span className="text-3xl font-black text-blue-600">{flight.price}</span>
                                                 <span className="text-sm text-gray-600 font-bold">{flight.currency}</span>
                                             </div>
@@ -477,7 +543,6 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                             </div>
                                             <div>
                                                 <p className="text-white font-black text-base">{flight.airline}</p>
-                                                <p className="text-white/90 text-sm font-bold">{flight.flightNumber}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1.5 rounded-lg border-2 border-white/30">
@@ -526,6 +591,9 @@ const FlightResults: React.FC<FlightResultsProps> = ({ searchParams: initialSear
                                             <div className="mb-2">
                                                 <p className="text-xs text-gray-500 font-bold uppercase mb-1">Price</p>
                                                 <div className="flex items-baseline justify-end gap-1">
+                                                    <div className="text-lg text-gray-500 font-bold line-through mb-0.5">
+                                                        {flight?.price + 100} AED
+                                                    </div>
                                                     <span className="text-5xl font-black text-blue-600">{flight.price}</span>
                                                     <span className="text-base font-bold text-gray-600">{flight.currency}</span>
                                                 </div>

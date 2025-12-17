@@ -1,21 +1,44 @@
 import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Plane, Star, Wifi, Utensils, Tv, Coffee, ArrowLeft, Phone, CheckCircle, Luggage, Sparkles } from 'lucide-react';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Plane, Star, Wifi, Utensils, Tv, Coffee, ArrowLeft, Phone, CheckCircle, Luggage, Sparkles, ArrowDownUp } from 'lucide-react';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import { getFlightById } from '../slices/flightSlice';
+import { searchFlights } from '../slices/flightSlice';
 
 const FlightDetail = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useAppDispatch();
-    const { selectedFlight: flight, loading, error } = useAppSelector((state) => state.flights);
+    const { selectedFlight: flight, loading, error, searchParams } = useAppSelector((state) => state.flights);
     const whatsappNumber = import.meta.env.VITE_CONTACT_NUMBER;
+
+    // Get isOutbound from location state (passed from FlightResults)
+    const isOutbound = location.state?.isOutbound ?? true;
 
     useEffect(() => {
         if (id) {
             dispatch(getFlightById(id));
         }
     }, [id, dispatch]);
+
+    // Handle return flight search (swap locations)
+    const handleSearchReturnFlight = async () => {
+        if (!searchParams) return;
+
+        // Swap the from and to locations
+        const returnSearchParams = {
+            ...searchParams,
+            from: searchParams.to,
+            to: searchParams.from
+        };
+
+        // Dispatch search with swapped locations
+        await dispatch(searchFlights(returnSearchParams));
+
+        // Navigate to flights page with swapped direction
+        navigate('/flights', { state: { isOutbound: !isOutbound } });
+    };
 
     // Loading state
     if (loading) {
@@ -68,14 +91,44 @@ const FlightDetail = () => {
     };
 
     const handleWhatsAppEnquiry = () => {
-        const message = `Hi, I'm interested in booking flight ${flight.flightNumber} (${flight.airline}) from ${flight.departureAirport} to ${flight.arrivalAirport}. Price: ${flight.price} ${flight.currency}. Can you help me with the booking?`;
+        // Use searchParams if available, otherwise fallback to flight data
+        const fromLocation = searchParams?.from || flight.departureAirport;
+        const toLocation = searchParams?.to || flight.arrivalAirport;
+
+        const message = `Hi, I'm interested in booking flight ${flight.flightNumber} (${flight.airline}) from ${fromLocation} to ${toLocation}. Price: ${flight.price} ${flight.currency}. Can you help me with the booking?`;
         const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
         window.open(whatsappUrl, '_blank');
     };
 
-    // Extract airport codes (last 3 characters in parentheses)
-    const getDepartureCode = () => flight.departureAirport.match(/\(([^)]+)\)/)?.[1] || 'DEP';
-    const getArrivalCode = () => flight.arrivalAirport.match(/\(([^)]+)\)/)?.[1] || 'ARR';
+    // Extract airport codes from searchParams (preferred) or flight data (fallback)
+    const getDepartureCode = () => {
+        if (searchParams?.from) {
+            return searchParams.from.match(/\(([^)]+)\)/)?.[1] || searchParams.from.slice(0, 3).toUpperCase();
+        }
+        return flight.departureAirport.match(/\(([^)]+)\)/)?.[1] || 'DEP';
+    };
+
+    const getArrivalCode = () => {
+        if (searchParams?.to) {
+            return searchParams.to.match(/\(([^)]+)\)/)?.[1] || searchParams.to.slice(0, 3).toUpperCase();
+        }
+        return flight.arrivalAirport.match(/\(([^)]+)\)/)?.[1] || 'ARR';
+    };
+
+    // Get full location names from searchParams (preferred) or flight data (fallback)
+    const getDepartureCity = () => {
+        if (searchParams?.from) {
+            return searchParams.from.split('(')[0].trim();
+        }
+        return flight.departureAirport.split('(')[0].trim();
+    };
+
+    const getArrivalCity = () => {
+        if (searchParams?.to) {
+            return searchParams.to.split('(')[0].trim();
+        }
+        return flight.arrivalAirport.split('(')[0].trim();
+    };
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-slate-100 via-gray-100 to-slate-100 pt-16 sm:pt-20 lg:pt-24 pb-6 sm:pb-8 lg:pb-12">
@@ -88,6 +141,22 @@ const FlightDetail = () => {
                     <ArrowLeft className="w-4 h-4 sm:w-5 sm:h-5 group-hover:-translate-x-1 transition-transform" />
                     <span className="text-xs sm:text-sm lg:text-base">Back to Results</span>
                 </button>
+
+                {/* Return Flight Search Button (if search params available) */}
+                {searchParams && (
+                    <div className="mb-4 sm:mb-6">
+                        <button
+                            onClick={handleSearchReturnFlight}
+                            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold px-4 sm:px-6 py-3 sm:py-4 rounded-xl sm:rounded-2xl text-sm sm:text-base transition-all transform hover:scale-105 shadow-lg flex items-center justify-center gap-2 sm:gap-3"
+                        >
+                            <ArrowDownUp className="w-4 h-4 sm:w-5 sm:h-5" />
+                            <span>Search Return Flight</span>
+                            <span className="text-xs sm:text-sm opacity-90">
+                                ({getArrivalCode()} → {getDepartureCode()})
+                            </span>
+                        </button>
+                    </div>
+                )}
 
                 {/* Boarding Pass Card */}
                 <div className="relative">
@@ -135,7 +204,7 @@ const FlightDetail = () => {
                                 <div className="text-left">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 sm:mb-2">From</p>
                                     <div className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-900 mb-1 sm:mb-2 leading-none">{getDepartureCode()}</div>
-                                    <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-semibold mb-2 sm:mb-3 line-clamp-2">{flight.departureAirport.split('(')[0].trim()}</p>
+                                    <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-semibold mb-2 sm:mb-3 line-clamp-2">{getDepartureCity()}</p>
                                     <div className="bg-blue-50 border border-blue-200 sm:border-2 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 inline-block">
                                         <p className="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">Departure</p>
                                         <p className="text-xl sm:text-2xl lg:text-3xl font-black text-blue-600 leading-none">{flight.departureTime}</p>
@@ -159,7 +228,7 @@ const FlightDetail = () => {
                                 <div className="text-right">
                                     <p className="text-[10px] sm:text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 sm:mb-2">To</p>
                                     <div className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-black text-gray-900 mb-1 sm:mb-2 leading-none">{getArrivalCode()}</div>
-                                    <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-semibold mb-2 sm:mb-3 line-clamp-2">{flight.arrivalAirport.split('(')[0].trim()}</p>
+                                    <p className="text-[10px] sm:text-xs lg:text-sm text-gray-600 font-semibold mb-2 sm:mb-3 line-clamp-2">{getArrivalCity()}</p>
                                     <div className="bg-blue-50 border border-blue-200 sm:border-2 rounded-md sm:rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 inline-block">
                                         <p className="text-[10px] sm:text-xs text-gray-500 font-bold mb-0.5">Arrival</p>
                                         <p className="text-xl sm:text-2xl lg:text-3xl font-black text-blue-600 leading-none">{flight.arrivalTime}</p>

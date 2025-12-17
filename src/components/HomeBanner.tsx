@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Calendar, Users, MapPin } from 'lucide-react';
+import { Calendar, Users, MapPin, ArrowDownUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
 import Flight from '../assets/Flight.jpg';
@@ -18,9 +18,16 @@ const Home = () => {
     const [showToDropdown, setShowToDropdown] = useState(false);
     const [loading, setLoading] = useState(false);
     const [hasFetchedAirports, setHasFetchedAirports] = useState(false);
+    const [fromSearchQuery, setFromSearchQuery] = useState('');
+    const [toSearchQuery, setToSearchQuery] = useState('');
+
+    // Track direction: true = UAE->International, false = International->UAE
+    const [isOutbound, setIsOutbound] = useState(true);
 
     const fromDropdownRef = useRef<HTMLDivElement>(null);
     const toDropdownRef = useRef<HTMLDivElement>(null);
+    const fromSearchInputRef = useRef<HTMLInputElement>(null);
+    const toSearchInputRef = useRef<HTMLInputElement>(null);
 
     const { uaeAirports, destinationCities, bannerImage, loading: airportsLoading, error } = useAppSelector(
         (state) => state.airports
@@ -49,9 +56,84 @@ const Home = () => {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
+    // Focus search input when dropdown opens
+    useEffect(() => {
+        if (showFromDropdown && fromSearchInputRef.current) {
+            fromSearchInputRef.current.focus();
+        }
+    }, [showFromDropdown]);
+
+    useEffect(() => {
+        if (showToDropdown && toSearchInputRef.current) {
+            toSearchInputRef.current.focus();
+        }
+    }, [showToDropdown]);
+
+    // Smart swap function that changes direction
+    const handleSwapLocations = () => {
+        if (!fromLocation || !toLocation) return;
+
+        // Swap the locations
+        const tempFrom = fromLocation;
+        setFromLocation(toLocation);
+        setToLocation(tempFrom);
+
+        // Toggle direction
+        setIsOutbound(!isOutbound);
+    };
+
+    // Get available FROM airports based on direction
+    const getFromAirports = () => {
+        if (isOutbound) {
+            // Outbound: FROM should be UAE airports
+            return uaeAirports;
+        } else {
+            // Inbound: FROM should be international destinations
+            return Object.values(destinationCities).flat();
+        }
+    };
+
+    // Get available TO airports based on direction
+    const getToAirports = () => {
+        if (isOutbound) {
+            // Outbound: TO should be international destinations
+            return destinationCities;
+        } else {
+            // Inbound: TO should be UAE airports
+            return {
+                'UAE': uaeAirports
+            };
+        }
+    };
+
+    // Filter FROM airports based on search query
+    const fromAirports = getFromAirports();
+    const filteredFromAirports = fromAirports.filter(airport =>
+        airport.name.toLowerCase().includes(fromSearchQuery.toLowerCase()) ||
+        airport.code.toLowerCase().includes(fromSearchQuery.toLowerCase())
+    );
+
+    // Filter TO airports based on search query
+    const toAirports = getToAirports();
+    const filteredToAirports = Object.entries(toAirports).reduce((acc, [country, cities]) => {
+        const filtered = cities.filter(city =>
+            city.name.toLowerCase().includes(toSearchQuery.toLowerCase()) ||
+            city.code.toLowerCase().includes(toSearchQuery.toLowerCase())
+        );
+        if (filtered.length > 0) {
+            acc[country] = filtered;
+        }
+        return acc;
+    }, {} as typeof destinationCities);
+
     const handleSearch = async () => {
         if (!fromLocation || !toLocation || !date) {
             alert('Please fill in all required fields');
+            return;
+        }
+
+        if (fromLocation === toLocation) {
+            alert('Departure and arrival cities must be different');
             return;
         }
 
@@ -97,6 +179,23 @@ const Home = () => {
     // If there's an error or no data, show a message but still render the form
     const hasAirportData = uaeAirports.length > 0 && Object.keys(destinationCities).length > 0;
 
+    // Helper function to find airport display text
+    const getAirportDisplayText = (location: string) => {
+        // Try UAE airports first
+        const uaeAirport = uaeAirports.find(a => a.full === location);
+        if (uaeAirport) {
+            return `${uaeAirport.name} (${uaeAirport.code})`;
+        }
+
+        // Try destination cities
+        const destCity = Object.values(destinationCities).flat().find(c => c.full === location);
+        if (destCity) {
+            return `${destCity.name} (${destCity.code})`;
+        }
+
+        return '';
+    };
+
     return (
         <div className="relative min-h-screen w-full overflow-hidden">
             {/* Background Image */}
@@ -140,7 +239,10 @@ const Home = () => {
                                 {/* From Location */}
                                 <div className="relative" ref={fromDropdownRef}>
                                     <button
-                                        onClick={() => setShowFromDropdown(!showFromDropdown)}
+                                        onClick={() => {
+                                            setShowFromDropdown(!showFromDropdown);
+                                            setFromSearchQuery('');
+                                        }}
                                         disabled={!hasAirportData}
                                         className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -149,52 +251,82 @@ const Home = () => {
                                         </div>
                                         <div className="flex-1 text-left">
                                             <div className={`text-base ${fromLocation ? 'text-gray-900 font-semibold' : 'text-gray-500 font-normal'}`}>
-                                                {fromLocation ? uaeAirports.find(a => a.full === fromLocation)?.name + ' (' + uaeAirports.find(a => a.full === fromLocation)?.code + ')' : 'Select City (Boarding point)'}
+                                                {fromLocation ? getAirportDisplayText(fromLocation) : isOutbound ? 'From (UAE)' : 'From (International)'}
                                             </div>
                                         </div>
                                     </button>
 
-                                    {/* Dropdown */}
+                                    {/* Dropdown - Shows EITHER UAE airports OR International based on direction */}
                                     {showFromDropdown && hasAirportData && (
                                         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-3 max-h-80 overflow-y-auto z-[100]">
+                                            {/* Search Input */}
+                                            <div className="mb-3 sticky top-0 bg-white z-10 pb-2">
+                                                <input
+                                                    ref={fromSearchInputRef}
+                                                    type="text"
+                                                    value={fromSearchQuery}
+                                                    onChange={(e) => setFromSearchQuery(e.target.value)}
+                                                    placeholder="Search city or airport code..."
+                                                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm"
+                                                />
+                                            </div>
+
                                             <div className="space-y-1.5">
-                                                {uaeAirports.map((airport, index) => (
-                                                    <button
-                                                        key={`${airport.full}-${index}`}
-                                                        onClick={() => {
-                                                            setFromLocation(airport.full);
-                                                            setShowFromDropdown(false);
-                                                        }}
-                                                        className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${fromLocation === airport.full
-                                                            ? 'bg-blue-50 border-2 border-blue-400'
-                                                            : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
-                                                            }`}
-                                                    >
-                                                        <div className={`p-2 rounded-lg ${fromLocation === airport.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
-                                                            <MapPin className={`w-4 h-4 ${fromLocation === airport.full ? 'text-white' : 'text-blue-600'}`} />
-                                                        </div>
-                                                        <div className="text-left flex-1">
-                                                            <div className={`font-bold text-base ${fromLocation === airport.full ? 'text-blue-900' : 'text-gray-900'}`}>
-                                                                {airport.name}
+                                                {filteredFromAirports.length > 0 ? (
+                                                    filteredFromAirports.map((airport, index) => (
+                                                        <button
+                                                            key={`${airport.full}-${index}`}
+                                                            onClick={() => {
+                                                                setFromLocation(airport.full);
+                                                                setShowFromDropdown(false);
+                                                                setFromSearchQuery('');
+                                                            }}
+                                                            className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${fromLocation === airport.full
+                                                                ? 'bg-blue-50 border-2 border-blue-400'
+                                                                : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
+                                                                }`}
+                                                        >
+                                                            <div className={`p-2 rounded-lg ${fromLocation === airport.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
+                                                                <MapPin className={`w-4 h-4 ${fromLocation === airport.full ? 'text-white' : 'text-blue-600'}`} />
                                                             </div>
-                                                            <div className="text-xs text-gray-500 font-semibold">{airport.code}</div>
-                                                        </div>
-                                                    </button>
-                                                ))}
+                                                            <div className="text-left flex-1">
+                                                                <div className={`font-bold text-base ${fromLocation === airport.full ? 'text-blue-900' : 'text-gray-900'}`}>
+                                                                    {airport.name}
+                                                                </div>
+                                                                <div className="text-xs text-gray-500 font-semibold">{airport.code}</div>
+                                                            </div>
+                                                        </button>
+                                                    ))
+                                                ) : (
+                                                    <div className="text-center py-4 text-gray-500">
+                                                        No airports found
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     )}
                                 </div>
 
-                                {/* Dotted Line Connection */}
+                                {/* Swap Button and Dotted Line */}
                                 <div className="flex items-center justify-center relative h-6">
                                     <div className="absolute top-0 bottom-0 w-0.5 border-l-2 border-dashed border-gray-400"></div>
+                                    <button
+                                        onClick={handleSwapLocations}
+                                        disabled={!fromLocation || !toLocation}
+                                        className="relative z-10 bg-white border-2 border-gray-300 rounded-full p-2 hover:bg-blue-50 hover:border-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+                                        title="Swap locations"
+                                    >
+                                        <ArrowDownUp className="w-4 h-4 text-gray-600" />
+                                    </button>
                                 </div>
 
                                 {/* To Location */}
                                 <div className="relative" ref={toDropdownRef}>
                                     <button
-                                        onClick={() => setShowToDropdown(!showToDropdown)}
+                                        onClick={() => {
+                                            setShowToDropdown(!showToDropdown);
+                                            setToSearchQuery('');
+                                        }}
                                         disabled={!hasAirportData}
                                         className="w-full flex items-center gap-4 bg-white rounded-2xl px-5 py-4 border-2 border-gray-200 hover:border-blue-400 transition shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
@@ -203,7 +335,7 @@ const Home = () => {
                                         </div>
                                         <div className="flex-1 text-left">
                                             <div className={`text-base ${toLocation ? 'text-gray-900 font-semibold' : 'text-gray-500 font-normal'}`}>
-                                                {toLocation ? Object.values(destinationCities).flat().find(c => c.full === toLocation)?.name + ' (' + Object.values(destinationCities).flat().find(c => c.full === toLocation)?.code + ')' : 'Your Destination'}
+                                                {toLocation ? getAirportDisplayText(toLocation) : isOutbound ? 'To (International)' : 'To (UAE)'}
                                             </div>
                                         </div>
                                     </button>
@@ -211,38 +343,57 @@ const Home = () => {
                                     {/* Dropdown with Country Groups */}
                                     {showToDropdown && hasAirportData && (
                                         <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-2xl border-2 border-gray-200 p-3 max-h-96 overflow-y-auto z-[100]">
-                                            {Object.entries(destinationCities).map(([country, cities]) => (
-                                                <div key={country} className="mb-4 last:mb-0">
-                                                    <h3 className="text-xs font-black text-gray-600 uppercase tracking-wider mb-2 px-2">
-                                                        {country}
-                                                    </h3>
-                                                    <div className="space-y-1.5">
-                                                        {cities.map((city, index) => (
-                                                            <button
-                                                                key={index}
-                                                                onClick={() => {
-                                                                    setToLocation(city.full);
-                                                                    setShowToDropdown(false);
-                                                                }}
-                                                                className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${toLocation === city.full
-                                                                    ? 'bg-blue-50 border-2 border-blue-400'
-                                                                    : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
-                                                                    }`}
-                                                            >
-                                                                <div className={`p-2 rounded-lg ${toLocation === city.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
-                                                                    <MapPin className={`w-4 h-4 ${toLocation === city.full ? 'text-white' : 'text-blue-600'}`} />
-                                                                </div>
-                                                                <div className="text-left flex-1">
-                                                                    <div className={`font-bold text-base ${toLocation === city.full ? 'text-blue-900' : 'text-gray-900'}`}>
-                                                                        {city.name}
+                                            {/* Search Input */}
+                                            <div className="mb-3 sticky top-0 bg-white z-10 pb-2">
+                                                <input
+                                                    ref={toSearchInputRef}
+                                                    type="text"
+                                                    value={toSearchQuery}
+                                                    onChange={(e) => setToSearchQuery(e.target.value)}
+                                                    placeholder="Search city or airport code..."
+                                                    className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl outline-none focus:border-blue-400 text-sm"
+                                                />
+                                            </div>
+
+                                            {Object.keys(filteredToAirports).length > 0 ? (
+                                                Object.entries(filteredToAirports).map(([country, cities]) => (
+                                                    <div key={country} className="mb-4 last:mb-0">
+                                                        <h3 className="text-xs font-black text-gray-600 uppercase tracking-wider mb-2 px-2">
+                                                            {country}
+                                                        </h3>
+                                                        <div className="space-y-1.5">
+                                                            {cities.map((city, index) => (
+                                                                <button
+                                                                    key={index}
+                                                                    onClick={() => {
+                                                                        setToLocation(city.full);
+                                                                        setShowToDropdown(false);
+                                                                        setToSearchQuery('');
+                                                                    }}
+                                                                    className={`w-full flex items-center gap-3 p-3 rounded-xl transition ${toLocation === city.full
+                                                                        ? 'bg-blue-50 border-2 border-blue-400'
+                                                                        : 'bg-gray-50 hover:bg-blue-50 border-2 border-transparent'
+                                                                        }`}
+                                                                >
+                                                                    <div className={`p-2 rounded-lg ${toLocation === city.full ? 'bg-blue-600' : 'bg-blue-100'}`}>
+                                                                        <MapPin className={`w-4 h-4 ${toLocation === city.full ? 'text-white' : 'text-blue-600'}`} />
                                                                     </div>
-                                                                    <div className="text-xs text-gray-500 font-semibold">{city.code}</div>
-                                                                </div>
-                                                            </button>
-                                                        ))}
+                                                                    <div className="text-left flex-1">
+                                                                        <div className={`font-bold text-base ${toLocation === city.full ? 'text-blue-900' : 'text-gray-900'}`}>
+                                                                            {city.name}
+                                                                        </div>
+                                                                        <div className="text-xs text-gray-500 font-semibold">{city.code}</div>
+                                                                    </div>
+                                                                </button>
+                                                            ))}
+                                                        </div>
                                                     </div>
+                                                ))
+                                            ) : (
+                                                <div className="text-center py-4 text-gray-500">
+                                                    No destinations found
                                                 </div>
-                                            ))}
+                                            )}
                                         </div>
                                     )}
                                 </div>

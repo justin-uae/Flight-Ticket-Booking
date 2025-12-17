@@ -3,7 +3,7 @@ import { useAppSelector, useAppDispatch } from '../store/hooks';
 import { searchFlights } from '../slices/flightSlice';
 import { getAirportData } from '../slices/airportSlice';
 import FlightResults from './FlightResults';
-import { Plane, Search, Calendar, Users } from 'lucide-react';
+import { Plane, Search, Calendar, Users, ArrowDownUp } from 'lucide-react';
 
 const FlightResultsPage = () => {
     const dispatch = useAppDispatch();
@@ -17,6 +17,9 @@ const FlightResultsPage = () => {
         date: '',
         passengers: '1'
     });
+
+    // Track direction: true = UAE->International, false = International->UAE
+    const [isOutbound, setIsOutbound] = useState(true);
 
     // Track if we've performed a search
     const [hasSearched, setHasSearched] = useState(false);
@@ -39,6 +42,10 @@ const FlightResultsPage = () => {
         if (existingSearchParams) {
             setSearchParams(existingSearchParams);
             setHasSearched(true);
+            
+            // Determine direction based on existing search
+            const fromIsUAE = uaeAirports.some(a => a.full === existingSearchParams.from);
+            setIsOutbound(fromIsUAE);
         } else {
             // Set default date to today
             setSearchParams(prev => ({
@@ -46,7 +53,38 @@ const FlightResultsPage = () => {
                 date: getTodayDate()
             }));
         }
-    }, [existingSearchParams]);
+    }, [existingSearchParams, uaeAirports]);
+
+    // Smart swap function
+    const handleSwapLocations = () => {
+        if (!searchParams.from || !searchParams.to) return;
+        
+        const tempFrom = searchParams.from;
+        setSearchParams({
+            ...searchParams,
+            from: searchParams.to,
+            to: tempFrom
+        });
+        setIsOutbound(!isOutbound);
+    };
+
+    // Get available FROM airports based on direction
+    const getFromAirports = () => {
+        if (isOutbound) {
+            return uaeAirports;
+        } else {
+            return Object.values(destinationCities).flat();
+        }
+    };
+
+    // Get available TO airports based on direction
+    const getToAirports = () => {
+        if (isOutbound) {
+            return destinationCities;
+        } else {
+            return { 'UAE': uaeAirports };
+        }
+    };
 
     // Handle search form submission
     const handleSearch = (e: React.FormEvent) => {
@@ -55,9 +93,12 @@ const FlightResultsPage = () => {
         dispatch(searchFlights(searchParams));
     };
 
+    const fromAirports = getFromAirports();
+    const toAirports = getToAirports();
+
     // If we have performed a search, show results (even if loading or no results yet)
     if (hasSearched && existingSearchParams) {
-        return <FlightResults searchParams={existingSearchParams} />;
+        return <FlightResults searchParams={existingSearchParams} isOutbound={isOutbound} />;
     }
 
     // Otherwise, show the search form
@@ -75,7 +116,7 @@ const FlightResultsPage = () => {
                         </h1>
                     </div>
                     <p className="text-base sm:text-lg text-gray-600 font-semibold">
-                        Find the best deals on flights from UAE to your destination
+                        Find the best deals on flights {isOutbound ? 'from UAE to your destination' : 'to UAE from international cities'}
                     </p>
                 </div>
 
@@ -99,10 +140,10 @@ const FlightResultsPage = () => {
                     {/* Form */}
                     <form onSubmit={handleSearch} className="p-6 sm:p-8">
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                            {/* From - UAE Airports */}
+                            {/* From */}
                             <div>
                                 <label className="block text-sm font-black text-gray-900 mb-2 uppercase tracking-wide">
-                                    From (UAE)
+                                    {isOutbound ? 'From (UAE)' : 'From (International)'}
                                 </label>
                                 <div className="relative">
                                     <Plane className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
@@ -112,8 +153,8 @@ const FlightResultsPage = () => {
                                         className="w-full pl-12 pr-4 py-4 border-2 border-gray-300 rounded-xl font-semibold text-gray-900 focus:border-blue-600 focus:outline-none transition bg-gray-50 hover:bg-white"
                                         required
                                     >
-                                        <option value="">Select UAE City</option>
-                                        {uaeAirports?.map((airport, index) => (
+                                        <option value="">Select Departure</option>
+                                        {fromAirports?.map((airport, index) => (
                                             <option key={`${airport.full}-${index}`} value={airport.full}>
                                                 {airport.name} ({airport.code})
                                             </option>
@@ -122,10 +163,10 @@ const FlightResultsPage = () => {
                                 </div>
                             </div>
 
-                            {/* To - Destination Cities */}
+                            {/* To */}
                             <div>
                                 <label className="block text-sm font-black text-gray-900 mb-2 uppercase tracking-wide">
-                                    To (Destination)
+                                    {isOutbound ? 'To (International)' : 'To (UAE)'}
                                 </label>
                                 <div className="relative">
                                     <Plane className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 rotate-90" />
@@ -136,7 +177,7 @@ const FlightResultsPage = () => {
                                         required
                                     >
                                         <option value="">Select Destination</option>
-                                        {Object.entries(destinationCities)?.map(([country, cities]) => (
+                                        {Object.entries(toAirports)?.map(([country, cities]) => (
                                             <optgroup key={country} label={country}>
                                                 {cities.map((city, index) => (
                                                     <option key={`${city.full}-${index}`} value={city.full}>
@@ -190,6 +231,20 @@ const FlightResultsPage = () => {
                             </div>
                         </div>
 
+                        {/* Swap Button */}
+                        <div className="flex items-center justify-center mb-6">
+                            <button
+                                type="button"
+                                onClick={handleSwapLocations}
+                                disabled={!searchParams.from || !searchParams.to}
+                                className="flex items-center gap-2 bg-white border-2 border-blue-300 rounded-xl px-6 py-3 hover:bg-blue-50 hover:border-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md"
+                                title="Swap departure and arrival"
+                            >
+                                <ArrowDownUp className="w-5 h-5 text-blue-600" />
+                                <span className="font-bold text-blue-600">Swap Locations</span>
+                            </button>
+                        </div>
+
                         {/* Submit Button */}
                         <button
                             type="submit"
@@ -231,11 +286,11 @@ const FlightResultsPage = () => {
 
                     <div className="bg-white rounded-xl p-6 shadow-lg border-2 border-gray-200 text-center">
                         <div className="bg-blue-100 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <Calendar className="w-6 h-6 text-blue-600" />
+                            <ArrowDownUp className="w-6 h-6 text-blue-600" />
                         </div>
-                        <h3 className="font-black text-gray-900 mb-2">Flexible Dates</h3>
+                        <h3 className="font-black text-gray-900 mb-2">Flexible Routes</h3>
                         <p className="text-sm text-gray-600 font-medium">
-                            Choose from available dates
+                            Swap locations for return flights
                         </p>
                     </div>
                 </div>
