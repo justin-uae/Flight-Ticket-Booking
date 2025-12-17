@@ -2,7 +2,6 @@ import { useState, useRef, useEffect } from 'react';
 import { Calendar, Users, MapPin, ArrowDownUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
-import Flight from '../assets/Flight.jpg';
 import { searchFlights } from '../slices/flightSlice';
 import { LazyImage } from './LazyImage';
 import { getAirportData } from '../slices/airportSlice';
@@ -156,26 +155,6 @@ const Home = () => {
         }
     };
 
-    // Show loading state while airports are loading (first time only)
-    if (airportsLoading && !hasFetchedAirports) {
-        return (
-            <div className="relative min-h-screen overflow-hidden">
-                <div className="absolute inset-0">
-                    <img
-                        src={Flight}
-                        alt="Flight Background"
-                        className="w-full h-full object-cover"
-                    />
-                </div>
-                <div className="relative z-10 flex items-center justify-center min-h-screen">
-                    <div className="bg-white/80 backdrop-blur-md rounded-2xl px-8 py-6 shadow-2xl">
-                        <div className="text-blue-600 text-xl font-bold">Loading airports...</div>
-                    </div>
-                </div>
-            </div>
-        );
-    }
-
     // If there's an error or no data, show a message but still render the form
     const hasAirportData = uaeAirports.length > 0 && Object.keys(destinationCities).length > 0;
 
@@ -201,7 +180,7 @@ const Home = () => {
             {/* Background Image */}
             <div className="absolute inset-0 w-full h-full">
                 <LazyImage
-                    src={bannerImage || Flight}
+                    src={bannerImage || ""}
                     alt="Flight Background"
                     className="w-full h-full object-cover object-center"
                 />
