@@ -1,0 +1,240 @@
+{
+    "India": [
+        {
+            "name": "Mumbai",
+            "code": "BOM",
+            "full": "Mumbai International Airport (BOM)"
+        },
+        {
+            "name": "Delhi",
+            "code": "DEL",
+            "full": "Delhi Indira Gandhi International Airport (DEL)"
+        },
+        {
+            "name": "Bangalore",
+            "code": "BLR",
+            "full": "Bengaluru Kempegowda International Airport (BLR)"
+        },
+        {
+            "name": "Hyderabad",
+            "code": "HYD",
+            "full": "Hyderabad Rajiv Gandhi International Airport (HYD)"
+        },
+        {
+            "name": "Kochi",
+            "code": "COK",
+            "full": "Kochi International Airport (COK)"
+        },
+        {
+            "name": "Chennai",
+            "code": "MAA",
+            "full": "Chennai International Airport (MAA)"
+        },
+        {
+            "name": "Kolkata",
+            "code": "CCU",
+            "full": "Kolkata Netaji Subhas Chandra Bose International Airport (CCU)"
+        },
+        {
+            "name": "Ahmedabad",
+            "code": "AMD",
+            "full": "Ahmedabad Sardar Vallabhbhai Patel International Airport (AMD)"
+        },
+        {
+            "name": "Pune",
+            "code": "PNQ",
+            "full": "Pune International Airport (PNQ)"
+        },
+        {
+            "name": "Goa",
+            "code": "GOI",
+            "full": "Goa Dabolim International Airport (GOI)"
+        },
+        {
+            "name": "Jaipur",
+            "code": "JAI",
+            "full": "Jaipur International Airport (JAI)"
+        },
+        {
+            "name": "Thiruvananthapuram",
+            "code": "TRV",
+            "full": "Thiruvananthapuram International Airport (TRV)"
+        },
+        {
+            "name": "Coimbatore",
+            "code": "CJB",
+            "full": "Coimbatore International Airport (CJB)"
+        },
+        {
+            "name": "Amritsar",
+            "code": "ATQ",
+            "full": "Amritsar Sri Guru Ram Dass Jee International Airport (ATQ)"
+        },
+        {
+            "name": "Srinagar",
+            "code": "SXR",
+            "full": "Srinagar Sheikh ul-Alam International Airport (SXR)"
+        },
+        {
+            "name": "Bhubaneswar",
+            "code": "BBI",
+            "full": "Bhubaneswar Biju Patnaik International Airport (BBI)"
+        }
+    ],
+    "Pakistan": [
+        {
+            "name": "Karachi",
+            "code": "KHI",
+            "full": "Karachi Jinnah International Airport (KHI)"
+        },
+        {
+            "name": "Lahore",
+            "code": "LHE",
+            "full": "Lahore Allama Iqbal International Airport (LHE)"
+        },
+        {
+            "name": "Islamabad",
+            "code": "ISB",
+            "full": "Islamabad International Airport (ISB)"
+        },
+        {
+            "name": "Faisalabad",
+            "code": "LYP",
+            "full": "Faisalabad International Airport (LYP)"
+        },
+        {
+            "name": "Multan",
+            "code": "MUX",
+            "full": "Multan International Airport (MUX)"
+        },
+        {
+            "name": "Peshawar",
+            "code": "PEW",
+            "full": "Peshawar Bacha Khan International Airport (PEW)"
+        },
+        {
+            "name": "Quetta",
+            "code": "UET",
+            "full": "Quetta International Airport (UET)"
+        },
+        {
+            "name": "Sialkot",
+            "code": "SKT",
+            "full": "Sialkot International Airport (SKT)"
+        },
+        {
+            "name": "Gwadar",
+            "code": "GWD",
+            "full": "Gwadar International Airport (GWD)"
+        },
+        {
+            "name": "Rahim Yar Khan",
+            "code": "RYK",
+            "full": "Rahim Yar Khan Sheikh Zayed International Airport (RYK)"
+        },
+        {
+            "name": "Sukkur",
+            "code": "SKZ",
+            "full": "Sukkur Airport (SKZ)"
+        },
+        {
+            "name": "Bahawalpur",
+            "code": "BHV",
+            "full": "Bahawalpur Airport (BHV)"
+        }
+    ],
+    "Philippines": [
+        {
+            "name": "Manila",
+            "code": "MNL",
+            "full": "Manila Ninoy Aquino International Airport (MNL)"
+        },
+        {
+            "name": "Cebu City",
+            "code": "CEB",
+            "full": "Cebu Mactan-Cebu International Airport (CEB)"
+        },
+        {
+            "name": "Davao City",
+            "code": "DVO",
+            "full": "Davao Francisco Bangoy International Airport (DVO)"
+        },
+        {
+            "name": "Iloilo City",
+            "code": "ILO",
+            "full": "Iloilo International Airport (ILO)"
+        },
+        {
+            "name": "Clark",
+            "code": "CRK",
+            "full": "Clark International Airport (CRK)"
+        },
+        {
+            "name": "Kalibo",
+            "code": "KLO",
+            "full": "Kalibo International Airport (KLO)"
+        },
+        {
+            "name": "Puerto Princesa",
+            "code": "PPS",
+            "full": "Puerto Princesa International Airport (PPS)"
+        },
+        {
+            "name": "Tagbilaran",
+            "code": "TAG",
+            "full": "Tagbilaran Airport (TAG)"
+        },
+        {
+            "name": "Zamboanga City",
+            "code": "ZAM",
+            "full": "Zamboanga International Airport (ZAM)"
+        },
+        {
+            "name": "Cagayan de Oro",
+            "code": "CGY",
+            "full": "Cagayan de Oro Laguindingan Airport (CGY)"
+        },
+        {
+            "name": "General Santos",
+            "code": "GES",
+            "full": "General Santos International Airport (GES)"
+        },
+        {
+            "name": "Dumaguete",
+            "code": "DGT",
+            "full": "Dumaguete-Sibulan Airport (DGT)"
+        },
+        {
+            "name": "Bacolod",
+            "code": "BCD",
+            "full": "Bacolod-Silay International Airport (BCD)"
+        }
+    ],
+    "Sri Lanka": [
+        {
+            "name": "Colombo",
+            "code": "CMB",
+            "full": "Colombo Bandaranaike International Airport (CMB)"
+        },
+        {
+            "name": "Mattala",
+            "code": "HRI",
+            "full": "Mattala Rajapaksa International Airport (HRI)"
+        },
+        {
+            "name": "Jaffna",
+            "code": "JAF",
+            "full": "Jaffna International Airport (JAF)"
+        },
+        {
+            "name": "Ratmalana",
+            "code": "RML",
+            "full": "Ratmalana Airport (RML)"
+        },
+        {
+            "name": "Trincomalee",
+            "code": "TRR",
+            "full": "Trincomalee China Bay Airport (TRR)"
+        }
+    ]
+}

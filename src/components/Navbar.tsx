@@ -30,11 +30,11 @@ const Navbar: React.FC<NavbarProps> = () => {
               <LazyLoadImage
                 src={Logo}
                 alt="Compare Flights UAE Logo"
-                className="h-9 sm:h-11 md:h-13 lg:h-16 w-auto transition-transform duration-300 group-hover:scale-105"
+                className="h-8 sm:h-8 md:h-8 lg:h-12 w-auto transition-transform duration-300 group-hover:scale-105"
               />
             </div>
-            <span className="text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 whitespace-nowrap">
-              Compare<span className="text-blue-600"> Flights</span>
+            <span className="text-sm ps-1 sm:text-base md:text-lg lg:text-xl xl:text-2xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors duration-300 whitespace-nowrap">
+              JETSET<span className="text-blue-600"> Flights</span>
             </span>
           </Link>
 

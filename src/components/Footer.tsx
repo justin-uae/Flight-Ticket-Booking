@@ -1,5 +1,6 @@
 import { Mail, Phone, MapPin } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { PaymentIcon } from 'react-svg-credit-card-payment-icons';
 
 export default function Footer() {
   const phoneNumber = import.meta.env.VITE_CONTACT_NUMBER;
@@ -20,7 +21,7 @@ export default function Footer() {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="flex flex-col">
                 <span className="text-xl sm:text-2xl md:text-3xl font-black text-white group-hover:text-blue-600 transition-colors duration-300">
-                  Compare <span className="text-blue-600">Flights</span>
+                  JETSET <span className="text-blue-600">Flights</span>
                 </span>
               </div>
             </Link>
@@ -76,7 +77,22 @@ export default function Footer() {
             ))}
           </div>
         </div>
+        <div className="mt-6 flex justify-center items-center gap-3 sm:gap-4">
+          <span className="text-xs sm:text-sm text-gray-400 font-medium">We Accept:</span>
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Visa */}
+            <div className="rounded p-1.5 sm:p-2 shadow-lg hover:scale-105 transition-transform">
+              <PaymentIcon className="w-10 h-6 sm:w-12 sm:h-7" type="Visa" format="flatRounded" />
+            </div>
+            <div className="rounded p-1.5 sm:p-2 shadow-lg hover:scale-105 transition-transform">
+              <PaymentIcon className="w-10 h-6 sm:w-12 sm:h-7" type="Mastercard" format="flatRounded" />
+            </div>
+            <div className="rounded p-1.5 sm:p-2 shadow-lg hover:scale-105 transition-transform">
+              <PaymentIcon className="w-10 h-6 sm:w-12 sm:h-7" type="Americanexpress" format="flatRounded" />
 
+            </div>
+          </div>
+        </div>
         {/* Copyright */}
         <div className="mt-6 pt-5 border-t-2 border-gray-700">
           <p className="text-center text-sm sm:text-base text-gray-400 font-semibold">

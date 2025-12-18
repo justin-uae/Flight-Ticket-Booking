@@ -1,5 +1,5 @@
-import { useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, MapPin, Sparkles, Plane, TrendingUp, Users } from 'lucide-react';
+import { useEffect } from 'react';
+import { MapPin, Sparkles, Plane, TrendingUp, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { LazyLoadImage } from 'react-lazy-load-image-component';
 import { useAppDispatch, useAppSelector } from '../store/hooks';
@@ -9,7 +9,6 @@ import { searchFlights } from '../slices/flightSlice';
 export default function PopularDestinations() {
     const navigate = useNavigate();
     const dispatch = useAppDispatch();
-    const scrollRef = useRef<HTMLDivElement>(null);
 
     const { destinations, loading, error } = useAppSelector((state) => state.destinations);
 
@@ -33,16 +32,6 @@ export default function PopularDestinations() {
         } catch (error) {
             console.error('Failed to search flights for destination:', error);
             navigate('/flights');
-        }
-    };
-
-    const scroll = (direction: 'left' | 'right') => {
-        if (scrollRef.current) {
-            const scrollAmount = scrollRef.current.clientWidth * 0.8;
-            scrollRef.current.scrollBy({
-                left: direction === 'left' ? -scrollAmount : scrollAmount,
-                behavior: 'smooth',
-            });
         }
     };
 
@@ -83,57 +72,38 @@ export default function PopularDestinations() {
         return null;
     }
 
+    // Show only first 9 destinations
+    const displayDestinations = destinations.slice(0, 9);
+
     return (
         <div className="bg-gradient-to-b from-white via-gray-50/20 to-white py-12 sm:py-16 md:py-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8 sm:mb-10 md:mb-12">
-                    <div>
-                        <div className="flex items-center gap-2 mb-2">
-                            <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
-                            <span className="text-blue-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
-                                Featured
-                            </span>
-                        </div>
-                        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900">
-                            Popular Destinations
-                        </h2>
-                        <p className="text-gray-600 text-sm sm:text-base font-medium mt-2">
-                            Discover trending routes and best flight deals from Dubai
-                        </p>
+                <div className="text-center mb-8 sm:mb-10 md:mb-12">
+                    <div className="flex items-center justify-center gap-2 mb-2">
+                        <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-blue-600" />
+                        <span className="text-blue-600 text-xs sm:text-sm font-bold uppercase tracking-wider">
+                            Featured
+                        </span>
                     </div>
-                    <div className="hidden sm:flex gap-2">
-                        <button
-                            onClick={() => scroll('left')}
-                            className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-full p-3 transition-all shadow-md hover:shadow-lg group"
-                            aria-label="Scroll left"
-                        >
-                            <ChevronLeft className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
-                        </button>
-                        <button
-                            onClick={() => scroll('right')}
-                            className="bg-white border-2 border-gray-200 hover:border-blue-400 hover:bg-blue-50 rounded-full p-3 transition-all shadow-md hover:shadow-lg group"
-                            aria-label="Scroll right"
-                        >
-                            <ChevronRight className="w-5 h-5 text-blue-600 group-hover:text-blue-700" />
-                        </button>
-                    </div>
+                    <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-gray-900 mb-2">
+                        Popular Destinations
+                    </h2>
+                    <p className="text-gray-600 text-sm sm:text-base font-medium">
+                        Discover trending routes and best flight deals from Dubai
+                    </p>
                 </div>
 
-                {/* Destinations Scrollable Row */}
-                <div
-                    ref={scrollRef}
-                    className="flex gap-4 sm:gap-5 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0"
-                    style={{ scrollBehavior: 'smooth', scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-                >
-                    {destinations.map((destination, index) => (
+                {/* Destinations Grid - 3 columns */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-6 lg:gap-8">
+                    {displayDestinations.map((destination, index) => (
                         <div
                             key={destination.id}
-                            className="group cursor-pointer w-[85vw] sm:w-[75vw] md:w-[380px] lg:w-[400px] flex-shrink-0 transform hover:scale-[1.02] transition-all duration-300"
+                            className="group cursor-pointer transform hover:scale-[1.02] transition-all duration-300"
                             onClick={() => handleDestinationClick(destination)}
                         >
                             {/* Boarding Pass Card */}
-                            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200">
+                            <div className="bg-white rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 border border-gray-200 h-full">
 
                                 {/* Header Section - Airline/Route Info */}
                                 <div className="bg-blue-600 px-4 sm:px-5 py-2.5 sm:py-3">
@@ -147,7 +117,7 @@ export default function PopularDestinations() {
                                         {index < 3 && (
                                             <div className="bg-white/25 backdrop-blur-sm text-white text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-full flex items-center gap-1">
                                                 <TrendingUp className="w-3 h-3" />
-                                                <span className="hidden sm:inline">Trending</span>
+                                                <span className="hidden sm:inline">Top</span>
                                             </div>
                                         )}
                                     </div>
@@ -164,7 +134,7 @@ export default function PopularDestinations() {
                                                     Destination
                                                 </span>
                                             </div>
-                                            <h3 className="text-2xl sm:text-3xl md:text-3xl font-black text-gray-900 mb-0.5">
+                                            <h3 className="text-2xl sm:text-3xl font-black text-gray-900 mb-0.5">
                                                 {destination.city}
                                             </h3>
                                             <p className="text-base sm:text-lg text-gray-700 font-semibold">
@@ -188,7 +158,7 @@ export default function PopularDestinations() {
                                         </div>
                                     </div>
 
-                                    {/* Image Section - Reduced Height */}
+                                    {/* Image Section */}
                                     <div className="relative h-28 sm:h-32 md:h-36 rounded-lg overflow-hidden mb-3 bg-gradient-to-br from-gray-100 to-gray-200">
                                         <LazyLoadImage
                                             src={destination.image}
@@ -280,7 +250,7 @@ export default function PopularDestinations() {
                                     <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm sm:text-base py-2.5 sm:py-3 rounded-lg transition-all duration-300 shadow-md hover:shadow-xl flex items-center justify-center gap-2">
                                         <Plane className="w-4 h-4 sm:w-5 sm:h-5" />
                                         <span>
-                                            View {destination.flightOptions} {destination.flightOptions === 1 ? 'Flight' : 'Flights'}
+                                            View {destination.flightOptions === 1 ? 'Flight' : 'Flights'}
                                         </span>
                                     </button>
                                 </div>
@@ -288,6 +258,19 @@ export default function PopularDestinations() {
                         </div>
                     ))}
                 </div>
+
+                {/* View All Button */}
+                {destinations.length > 9 && (
+                    <div className="text-center mt-10 sm:mt-12">
+                        <button
+                            onClick={() => navigate('/flights')}
+                            className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-base sm:text-lg px-8 py-4 rounded-xl transition-all duration-300 shadow-lg hover:shadow-xl transform hover:scale-105"
+                        >
+                            <Plane className="w-5 h-5" />
+                            <span>View All Destinations</span>
+                        </button>
+                    </div>
+                )}
             </div>
         </div>
     );
